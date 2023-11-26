@@ -11,15 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('event', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->unsignedBigInteger('student_id');
-            $table->string('mobile_no');
-            $table->string('email')->unique();
-            $table->string('password');
+            $table->string('event_info');
+            $table->dateTime('event_datetime');
+            $table->dateTime('announced_datetime');
+            $table->dateTime('payment_deadline');
             $table->timestamps();
-            $table->foreign('student_id')->references('student_id')->on('students');
         });
     }
 
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('event');
     }
 };
