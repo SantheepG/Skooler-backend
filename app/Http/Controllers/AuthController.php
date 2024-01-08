@@ -100,11 +100,78 @@ class AuthController extends Controller
         return $student;
     }
 
+    public function updateProfile(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'integer',
+            'name' => 'string',
+
+            'email' => 'email'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        } else {
+            //$user = auth()->user(); // Assuming you're working within an authenticated context
+            //$id = (int)($request->input('id'));
+            //$user = User::user();
+            //$user = User::find($id);
+
+            $user = User::find($request->input('id'));
+            //$user = Auth::where('id', $id)->first();
+            if (!$user) {
+                return response()->json(['error' => 'User not found'], 404);
+            } else {
+                $user->update($request->only('name', 'email'));
+            }
+
+            //if ($request->has('email')) {
+            //    $user->email = $request->input('email');
+            //}
+
+
+            //if ($request->has('mobile_no')) {
+            //    $user->mobile_no = $request->input('mobile_no');
+            //}
+
+            //if ($request->has('name')) {
+            //    $user->name = $request->input('name');
+            //}
+
+            //$user->save();
+
+            return response()->json(['message' => 'User profile updated successfully', 'user' => $user], 200);
+        }
+    }
+
     public function pwdReset()
     {
     }
 
     public function ViewStudents()
     {
+    }
+
+
+    public function CheckId(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'student_id' => 'required|string',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        } else {
+            $studentId = (int) ($request->input('student_id'));
+            $student = Student::where('student_id', $studentId)->first();
+            if ($student) {
+                return response([
+                    'message' => "found"
+                ], Response::HTTP_ACCEPTED);
+            } else {
+                return response([
+                    'message' => "not found"
+                ]);
+            }
+        }
     }
 }

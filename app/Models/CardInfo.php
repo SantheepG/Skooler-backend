@@ -5,12 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Student extends Model
+class CardInfo extends Model
 {
     use HasFactory;
-    protected $table = 'students';
+    protected $table = "card_info";
     protected $fillable = [
-        'name',
-        'mobile_no',
+        'cardInfo_id',
+        'card_details',
+        'user_id'
     ];
 }
