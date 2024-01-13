@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Admin;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
@@ -143,6 +144,34 @@ class AdminController extends Controller
             return response()->json(['message' => 'Status updated successfully', "admins" => $admins], 200);
         } else {
             return response()->json(['message' => 'User not found'], 404);
+        }
+    }
+
+    public function fetchProducts()
+    {
+        $products = Product::all();
+        return response()->json([
+            'products' => $products
+        ], 200);
+    }
+
+    public function updateStock($id, $stock)
+    {
+        try {
+
+            $product = Product::find($id);
+
+            if (!$product) {
+                return response()->json(['message' => 'Product not found'], 404);
+            }
+
+            $product->stock = $stock;
+            $product->save();
+
+            return response()->json(['message' => 'Stock updated successfully', 'data' => $product], 200);
+        } catch (\Exception $e) {
+
+            return response()->json(['message' => 'Failed to update stock', 'error' => $e->getMessage()], 500);
         }
     }
 }

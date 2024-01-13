@@ -12,10 +12,13 @@ class Event extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = [
+        'event_name',
         'event_info',
+        'venue',
+        'payment',
         'event_datetime',
-        'announced_datetime',
-        'payment_deadline',
+        'payment_deadline'
+
 
     ];
 }

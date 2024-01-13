@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EventController extends Controller
 {
-    public function index()
+    public function fetchEvents()
     {
         $events = Event::all();
         if ($events->count() > 0) {
@@ -29,9 +29,11 @@ class EventController extends Controller
     {
         print_r($request->all());
         $validator = Validator::make($request->all(), [
+            'event_name' => 'required|string',
             'event_info' => 'required|string',
+            'venue' => 'string',
+            'payment' => 'numeric|nullable',
             'event_datetime' => 'required|date',
-            'announced_datetime' => 'nullable|date',
             'payment_deadline' => 'nullable|date',
 
         ]);
@@ -42,18 +44,19 @@ class EventController extends Controller
             ], 422);
         } else {
             $event = Event::create([
-
+                'event_name' => $request->event_name,
                 'event_info' => $request->event_info,
+                'venue' => $request->venue,
+                'payment' => $request->payment,
                 'event_datetime' => $request->event_datetime,
-                'announced_datetime' => $request->announced_datetime,
                 'payment_deadline' => $request->payment_deadline,
 
             ]);
             if ($event) {
                 return response()->json([
-                    'status' => 200,
+                    'status' => 201,
                     'message' => "Event Added Successfully"
-                ], 200);
+                ], 201);
             } else {
                 return response()->json([
                     'status' => 500,
@@ -62,6 +65,52 @@ class EventController extends Controller
             }
         }
     }
+
+    public function UpdateEvent(Request $request)
+    {
+        print_r($request->all());
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:event,id',
+            'event_name' => 'required|string',
+            'event_info' => 'required|string',
+            'venue' => 'required|string',
+            'payment' => 'numeric|nullable',
+            'event_datetime' => 'required|date',
+            'payment_deadline' => 'nullable|date',
+
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'errors' => $validator->messages(),
+            ], 422);
+        }
+
+        $event = Event::find($request->id);
+
+        if (!$event) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Event not found',
+            ], 404);
+        }
+
+        $event->update([
+            'event_name' => $request->event_name,
+            'event_info' => $request->event_info,
+            'venue' => $request->venue,
+            'payment' => $request->payment,
+            'event_datetime' => $request->event_datetime,
+            'payment_deadline' => $request->payment_deadline,
+        ]);
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Event updated successfully',
+            'data' => $event,
+        ], 200);
+    }
+
     public function show($id)
     {
         $event = Event::find($id);
@@ -130,6 +179,15 @@ class EventController extends Controller
                 'message' => "No Such Event Found!"
             ], 404);
         }
+    }
+
+    public function deleteEvent($id)
+    {
+        $event = Event::where('id', $id)->first();
+        $event->delete();
+        return response()->json([
+            "message" => "Successfully deleted"
+        ], 200);
     }
 
     public function getAllEvents()

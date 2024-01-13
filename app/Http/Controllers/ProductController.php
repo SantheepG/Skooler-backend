@@ -1,0 +1,132 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Product;
+use App\Models\Review;
+use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Request;
+use Psy\Readline\Hoa\Console;
+
+class ProductController extends Controller
+{
+    public function getAvgRating(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'product_id' => 'required|integer'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        } else {
+            $product_id = $request->input('product_id');
+            $ratings = Review::where('product_id', $product_id)->pluck('rating')->toArray();
+
+            if (count($ratings) > 0) {
+                $averageRating = array_sum($ratings) / count($ratings);
+                return response()->json(['avg_rating' => $averageRating], 200);
+            } else {
+                return response()->json(['avg_rating' => 0], 200);
+            }
+        };
+    }
+    public function getProduct($id)
+    {
+        $product = Product::where('products_id', $id)->first();
+        $reviews = Review::where('product_id', $id)->get();
+        if ($product) {
+            return response()->json(['product' => $product, 'reviews' => $reviews], 200);
+        } else {
+            return response()->json(['message' => 'Not found'], 404);
+        }
+    }
+
+
+    public function addProduct(Request $request)
+    {
+        $validatedData = $request->validate([
+            'name' => 'required|string',
+            'description' => 'required|string',
+            'stock' => 'required|integer',
+            'size' => 'string|nullable',
+            'color' => 'string|nullable',
+            'price' => 'required|numeric',
+            'discount' => 'numeric|nullable',
+            'discounted_price' => 'numeric|nullable',
+            'images' => 'array|nullable',
+            'category_id' => 'required|exists:category,category_id',
+            'subcategory_id' => 'exists:subcategory,subcategory_id',
+        ]);
+
+        try {
+            $product = Product::create($validatedData);
+            return response()->json(['message' => 'Product added successfully', 'data' => $product], 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to add product', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function deleteProduct($id)
+    {
+        $product = Product::where('products_id', $id)->first();
+
+        $product->delete();
+        return response()->json([
+            "message" => "Successfully deleted"
+        ], 200);
+    }
+
+    public function UpdateProduct(Request $request)
+    {
+        $validatedData = Validator::make($request->all(), [
+            'products_id' => 'required|integer',
+            'name' => 'required|string',
+            'description' => 'required|string',
+            'stock' => 'required|integer',
+            'size' => 'string|nullable',
+            'color' => 'string|nullable',
+            'price' => 'required|numeric',
+            'discount' => 'numeric|nullable',
+            'discounted_price' => 'numeric|nullable',
+            'images' => 'array|nullable',
+            'category_id' => 'required|exists:category,category_id',
+            'subcategory_id' => 'exists:subcategory,subcategory_id',
+        ]);
+        if ($validatedData->fails()) {
+            return response()->json([
+                'status' => 422,
+                'errors' => $validatedData->messages()
+            ], 422);
+        } else {
+            $id = $request->input('products_id');
+            $product = Product::where('products_id', $id)->first();
+
+
+            if ($product) {
+                $product->update([
+                    'name' => $request->input('name'),
+                    'description' => $request->input('description'),
+                    'stock' => $request->input('stock'),
+                    'size' => $request->input('size'),
+                    'color' => $request->input('color'),
+                    'price' => $request->input('price'),
+                    'discount' => $request->input('discount'),
+                    'discounted_price' => $request->input('discounted_price'),
+                    'images' => $request->input('images'),
+                    'category_id' => $request->input('category_id'),
+                    'subcategory_id' => $request->input('subcategory_id'),
+                ]);
+                return response()->json([
+                    'status' => 200,
+                    'message' => "Event Updated Successfully"
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => 404,
+                    'message' => "No Such Event Found!"
+                ], 404);
+            }
+        }
+    }
+}
