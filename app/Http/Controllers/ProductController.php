@@ -11,6 +11,29 @@ use Psy\Readline\Hoa\Console;
 
 class ProductController extends Controller
 {
+
+    public function fetchProducts()
+    {
+        // Fetching all products
+        $products = Product::all();
+
+        // Iterating through each product and calculate the average rating
+        foreach ($products as $product) {
+            $ratings = Review::where('product_id', $product->products_id)->pluck('rating')->toArray();
+            $averageRating = (count($ratings) > 0) ? array_sum($ratings) / count($ratings) : 0;
+
+            // Adding the average rating to each product's object
+            $product->avg_rating = $averageRating;
+        }
+
+        // response
+        return response()->json([
+            'products' => $products
+        ], 200);
+    }
+
+
+
     public function getAvgRating(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -31,14 +54,57 @@ class ProductController extends Controller
             }
         };
     }
+
+
     public function getProduct($id)
     {
         $product = Product::where('products_id', $id)->first();
         $reviews = Review::where('product_id', $id)->get();
+
+
         if ($product) {
+            $ratings = Review::where('product_id', $product->products_id)->pluck('rating')->toArray();
+            $averageRating = (count($ratings) > 0) ? array_sum($ratings) / count($ratings) : 0;
+
+            $product->avg_rating = $averageRating;
             return response()->json(['product' => $product, 'reviews' => $reviews], 200);
         } else {
             return response()->json(['message' => 'Not found'], 404);
+        }
+    }
+
+
+    public function fetchRelatedProducts($id)
+    {
+        $product = Product::where('products_id', $id)->first();
+
+        if ($product) {
+            $category_id = $product->category_id;
+
+            $relatedProducts = Product::where('category_id', $category_id)
+                ->where('products_id', '!=', $id)
+                ->take(3)
+                ->get();
+
+            if ($relatedProducts->count() < 3) {
+                $additionalProducts = Product::where('products_id', '!=', $id)
+                    ->take(3 - $relatedProducts->count())
+                    ->get();
+
+                $relatedProducts = $relatedProducts->merge($additionalProducts);
+            }
+
+            foreach ($relatedProducts as $relatedProduct) { // Change variable name to $relatedProduct
+                $ratings = Review::where('product_id', $relatedProduct->products_id)->pluck('rating')->toArray();
+                $averageRating = (count($ratings) > 0) ? array_sum($ratings) / count($ratings) : 0;
+
+                // Adding the average rating to each product's object
+                $relatedProduct->avg_rating = $averageRating;
+            }
+
+            return $relatedProducts;
+        } else {
+            return Product::take(3)->get()->toArray();
         }
     }
 

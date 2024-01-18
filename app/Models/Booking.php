@@ -5,16 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Review extends Model
+class Booking extends Model
 {
     use HasFactory;
-    protected $table = 'reviews';
-    protected $primaryKey = 'review_id';
+    protected $table = 'bookings';
+    protected $primaryKey = 'id';
+
     protected $fillable = [
-        'rating',
-        'comment',
-        'product_id',
+        'event_id',
         'user_id',
-        'user_name'
+        'tickets',
+        'paid',
+        'payment_method'
     ];
 }

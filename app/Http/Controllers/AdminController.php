@@ -155,6 +155,8 @@ class AdminController extends Controller
         ], 200);
     }
 
+
+
     public function updateStock($id, $stock)
     {
         try {

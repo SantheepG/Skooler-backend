@@ -15,6 +15,8 @@ class Event extends Model
         'event_name',
         'event_info',
         'venue',
+        'capacity',
+        'reserved_slots',
         'payment',
         'event_datetime',
         'payment_deadline'

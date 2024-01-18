@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Order;
-use App\Models\User;
+use App\Models\Booking;
 
 class OrderController extends Controller
 {
@@ -13,10 +13,13 @@ class OrderController extends Controller
         try {
             $user_id = (int) $request->input('id');
 
-            // Retrieve orders associated with the user_id
+            // Retrieving orders associated with the user_id
             $orders = Order::where('user_id', $user_id)->get();
 
-            return response()->json(['orders' => $orders], 200);
+            // Retrieving orders associated with the user_id
+            $bookings = Booking::where('user_id', $user_id)->get();
+
+            return response()->json(['orders' => $orders, 'bookings' => $bookings], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

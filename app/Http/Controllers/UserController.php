@@ -10,6 +10,8 @@ use App\Models\CartItem;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use App\Models\Review;
+use App\Models\User;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -137,17 +139,16 @@ class UserController extends Controller
     {
 
         $user_id = $request->input('user_id');
-        $updatedCart = $request->input('updatedCart'); // Decode the JSON into an array
+        $updatedCart = $request->input('updatedCart');
 
         $cart = Cart::where('user_id', $user_id)->first();
 
         if (!$cart) {
-            // If cart doesn't exist, create a new one for the user
             $cart = new Cart();
             $cart->user_id = $user_id;
         }
 
-        // Update the 'products' field in the cart with the updated cart data
+
         $cart->products = $updatedCart;
 
         $cart->save();
@@ -155,58 +156,70 @@ class UserController extends Controller
         return response()->json(['message' => 'Cart updated successfully'], 200);
     }
 
-    public function fetchRelatedProducts($id)
+
+
+    public function rateProduct(Request $request)
     {
-        $product = Product::where('products_id', $id)->first();
-
-        if ($product) {
-            $category_id = $product->category_id;
-
-            $relatedProducts = Product::where('category_id', $category_id)
-                ->where('products_id', '!=', $id)
-                ->take(3)
-                ->get();
-
-            if ($relatedProducts->count() < 3) {
-                $additionalProducts = Product::where('products_id', '!=', $id)
-                    ->take(3 - $relatedProducts->count())
-                    ->get();
-
-                $relatedProducts = $relatedProducts->merge($additionalProducts);
-            }
-
-            return $relatedProducts;
-        } else {
-            return Product::take(3)->get()->toArray();
-        }
-    }
-
-    public function RateProduct(Request $request)
-    {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'product_id' => 'required|integer',
             'user_id' => 'required|integer',
+            'user_name' => 'required|string',
             'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'nullable|string',
         ]);
 
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
 
         $review = Review::where('product_id', $request->product_id)
             ->where('user_id', $request->user_id)
             ->first();
 
         if ($review) {
-
             $review->update(['rating' => $request->rating]);
-        } else {
 
-            Review::create([
+            if ($request->comment !== null) {
+                $review->update(['comment' => $request->comment]);
+            }
+
+            return response()->json(['message' => 'Rating updated successfully'], 200);
+        } else {
+            $data = [
                 'product_id' => $request->product_id,
                 'user_id' => $request->user_id,
                 'rating' => $request->rating,
-                'comment' => null
-            ]);
-        }
+                'comment' => $request->comment,
+            ];
 
-        return response()->json(['message' => 'Rating updated or created successfully'], 200);
+            Review::create($data);
+
+            return response()->json(['message' => 'Rating created successfully'], 201);
+        }
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'integer',
+            'name' => 'string',
+
+            'email' => 'email'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        } else {
+
+            $user = User::find($request->input('id'));
+
+            if (!$user) {
+                return response()->json(['error' => 'User not found'], 404);
+            } else {
+                $user->update($request->only('name', 'email'));
+            }
+
+            return response()->json(['message' => 'User profile updated successfully', 'user' => $user], 200);
+        }
     }
 }
