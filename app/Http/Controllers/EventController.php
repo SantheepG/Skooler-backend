@@ -6,6 +6,7 @@ use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use Symfony\Component\HttpFoundation\Response;
 
 class EventController extends Controller
@@ -27,12 +28,12 @@ class EventController extends Controller
     }
     public function store(Request $request)
     {
-        print_r($request->all());
         $validator = Validator::make($request->all(), [
             'event_name' => 'required|string',
             'event_info' => 'required|string',
-            'venue' => 'string',
-            'capacity' => 'required|integer',
+            'venue' => 'required|string',
+            'capacity' => 'integer|nullable',
+            'reserved_slots' => 'integer|nullable',
             'payment' => 'numeric|nullable',
             'event_datetime' => 'required|date',
             'payment_deadline' => 'nullable|date',
@@ -49,6 +50,7 @@ class EventController extends Controller
                 'event_info' => $request->event_info,
                 'venue' => $request->venue,
                 'capacity' => $request->capacity,
+                'reserved_slots' => 0,
                 'payment' => $request->payment,
                 'event_datetime' => $request->event_datetime,
                 'payment_deadline' => $request->payment_deadline,
@@ -207,6 +209,59 @@ class EventController extends Controller
                 'status' => 404,
                 'message' => "No Such Event Found!"
             ], 404);
+        }
+    }
+
+    public function bookaTicket(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'event_id' => 'required|exists:event,id',
+            'user_id' => 'required|exists:users,id',
+            'tickets' => 'required|integer',
+            'paid' => 'required|numeric',
+            'payment_method' => 'required|string',
+
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'errors' => $validator->messages()
+            ], 422);
+        } else {
+            try {
+                $validatedData = $validator->validated();
+                $booking = Booking::create($validatedData);
+                return response()->json(['message' => 'Booking added success', 'category' => $booking], 201);
+            } catch (\Exception $e) {
+                return response()->json(['message' => 'Failed to add subcategory', 'error' => $e->getMessage()], 500);
+            }
+        }
+    }
+
+    public function fetchBookings(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+
+            'user_id' => 'required|exists:users,id',
+
+
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'errors' => $validator->messages()
+            ], 422);
+        } else {
+            try {
+                $validatedData = $validator->validated();
+                $user_id = (int) $validatedData;
+                $booking = Booking::where('user_id', $user_id)->get();
+                return response()->json(['booking' => $booking], 200);
+            } catch (\Exception $e) {
+                return response()->json(['message' => 'Request failed', 'error' => $e->getMessage()], 500);
+            }
         }
     }
 }

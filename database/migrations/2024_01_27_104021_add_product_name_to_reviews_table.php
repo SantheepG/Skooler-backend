@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('cartitem', function (Blueprint $table) {
-            $table->string('product_name')->nullable()->after('product_id');
+        Schema::table('reviews', function (Blueprint $table) {
+            $table->string('product_name')->after('product_id');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('cartitem', function (Blueprint $table) {
-            Schema::dropIfExists('product_name');
+        Schema::table('reviews', function (Blueprint $table) {
+            $table->dropIfExists('product_name');
         });
     }
 };

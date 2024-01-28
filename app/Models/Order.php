@@ -9,13 +9,16 @@ class Order extends Model
 {
     use HasFactory;
     protected $table = 'sales_history';
+    protected $primaryKey = 'id';
     protected $fillable = [
         'user_id',
         'products',
-        'ordered_datetime',
+        'total_price',
+        'order_type',
         'payment_method',
         'order_status',
         'dispatch_datetime',
-        'dispatch_address'
+        'dispatch_address',
+        'reviewed'
     ];
 }

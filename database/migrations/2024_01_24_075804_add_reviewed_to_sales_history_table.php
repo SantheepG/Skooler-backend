@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('bookings', function (Blueprint $table) {
-            $table->decimal('paid', 10, 2)->after('tickets');
-            $table->string('payment_method')->after('paid');
+        Schema::table('sales_history', function (Blueprint $table) {
+            $table->boolean('reviewed')->after('dispatch_address');
         });
     }
 
@@ -22,9 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('bookings', function (Blueprint $table) {
-            Schema::dropIfExists('paid');
-            Schema::dropIfExists('payment_method');
+        Schema::table('sales_history', function (Blueprint $table) {
+            $table->dropIfExists('reviewed');
         });
     }
 };

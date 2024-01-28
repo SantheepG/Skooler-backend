@@ -12,6 +12,7 @@ class Admin extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
     protected $table = 'admins';
+    protected $primaryKey = 'id';
     protected $fillable = [
         'first_name',
         'last_name',
@@ -20,7 +21,8 @@ class Admin extends Authenticatable
         'address',
         'roles',
         'profile_pic',
-        'password'
+        'password',
+        'is_active'
 
     ];
     protected $hidden = [

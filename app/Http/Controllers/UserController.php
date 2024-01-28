@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Event;
+use App\Models\Order;
 use Illuminate\Http\Request;
 use App\Models\Review;
 use App\Models\User;
@@ -24,7 +25,7 @@ class UserController extends Controller
 
     public function getSubcategories($id)
     {
-        $subcategories = Subcategory::where('category_id', $id)->select('subcategory_id', 'name')->get();
+        $subcategories = Subcategory::where('category_id', $id)->select('id', 'name')->get();
 
         return response()->json(['subcategory' => $subcategories], 200);
     }
@@ -75,19 +76,49 @@ class UserController extends Controller
 
     function deleteCartItem($id)
     {
-        $cartItem = CartItem::where('id', $id)->first();
-        $cartItem->delete();
-        return response()->json([
-            "message" => "Successfully deleted"
-        ], 200);
+        try {
+            $cartItem = CartItem::where('id', $id)->first();
+
+            if ($cartItem) {
+                $user_id = $cartItem->user_id;
+                $cartItem->delete();
+                $subTotal = CartItem::where('user_id', $user_id)
+                    ->select(CartItem::raw('SUM(totalPrice) as total'))
+                    ->first()
+                    ->total;
+
+                return response()->json(['message' => 'deleted', 'subtotal' => $subTotal], 200);
+            } else {
+                return response()->json(['message' => 'not found'], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
     }
 
     function updateCartItem($id, $qty, $price)
     {
-        $cartItem = CartItem::where('id', $id)->first();
-        $cartItem->quantity = $qty;
-        $cartItem->totalPrice = $qty * $price;
-        $cartItem->save();
+        try {
+            $cartItem = CartItem::find($id);
+
+            if ($cartItem) {
+                $cartItem->quantity = $qty;
+                $cartItem->totalPrice = $qty * $price;
+                $cartItem->save();
+
+                $user_id = $cartItem->user_id;
+                $subTotal = CartItem::where('user_id', $user_id)
+                    ->select(CartItem::raw('SUM(totalPrice) as total'))
+                    ->first()
+                    ->total;
+
+                return response()->json(['message' => 'updated', 'subtotal' => $subTotal], 200);
+            } else {
+                return response()->json(['message' => 'not found'], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
     }
 
 
@@ -161,10 +192,11 @@ class UserController extends Controller
     public function rateProduct(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'product_id' => 'required|integer',
+            'product_id' => 'required|exists:products,id',
+            'product_name' => 'required|string',
             'user_id' => 'required|integer',
             'user_name' => 'required|string',
-            'rating' => 'required|integer|min:1|max:5',
+            'rating' => 'required|integer',
             'comment' => 'nullable|string',
         ]);
 
@@ -187,7 +219,9 @@ class UserController extends Controller
         } else {
             $data = [
                 'product_id' => $request->product_id,
+                'product_name' => $request->product_name,
                 'user_id' => $request->user_id,
+                'user_name' => $request->user_name,
                 'rating' => $request->rating,
                 'comment' => $request->comment,
             ];
@@ -195,6 +229,23 @@ class UserController extends Controller
             Review::create($data);
 
             return response()->json(['message' => 'Rating created successfully'], 201);
+        }
+    }
+
+    public function deleteReview($id)
+
+    {
+        $review = Review::where('id', $id)->first();
+
+        if ($review) {
+            $review->delete();
+            return response()->json([
+                "message" => "deleted"
+            ], 200);
+        } else {
+            return response()->json([
+                "message" => "not found"
+            ], 404);
         }
     }
 
@@ -221,5 +272,65 @@ class UserController extends Controller
 
             return response()->json(['message' => 'User profile updated successfully', 'user' => $user], 200);
         }
+    }
+
+    public function updateName(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:users,id',
+            'first_name' => 'required|string',
+            'last_name' => 'required|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        } else {
+
+            $user = User::find($request->input('id'));
+
+            if (!$user) {
+                return response()->json(['error' => 'User not found'], 404);
+            } else {
+                $user->update($request->only('first_name', 'last_name'));
+            }
+
+            return response()->json(['message' => 'User profile updated successfully', 'user' => $user], 200);
+        }
+    }
+
+    public function updateAddress(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:users,id',
+            'address' => 'required|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        } else {
+
+            $user = User::find($request->input('id'));
+
+            if (!$user) {
+                return response()->json(['error' => 'User not found'], 404);
+            } else {
+                $user->update($request->only('address'));
+            }
+
+            return response()->json(['message' => 'User profile updated successfully', 'user' => $user], 200);
+        }
+    }
+
+
+    public function getReviews($id)
+    {
+        $reivewed = Review::where('user_id', $id)->get();
+        $toReview = Order::where('user_id', $id)
+            ->where('reviewed', false)
+            ->get();
+        return response()->json([
+            "reviewed" => $reivewed,
+            "toReview" => $toReview
+        ], 200);
     }
 }

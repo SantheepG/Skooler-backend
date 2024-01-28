@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('products', function (Blueprint $table) {
-            $table->id('products_id');
+            $table->id();
             $table->string('name');
             $table->text('description');
             $table->integer('stock');
@@ -24,10 +24,10 @@ return new class extends Migration
             $table->json('images')->nullable();
 
             $table->unsignedBigInteger('category_id');
-            $table->foreign('category_id')->references('category_id')->on('category');
+            $table->foreign('category_id')->references('id')->on('category');
 
             $table->unsignedBigInteger('subcategory_id')->nullable();
-            $table->foreign('subcategory_id')->references('subcategory_id')->on('subcategory');
+            $table->foreign('subcategory_id')->references('id')->on('subcategory');
 
             $table->timestamps();
         });

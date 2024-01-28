@@ -9,12 +9,15 @@ class Complaint extends Model
 {
     use HasFactory;
     protected $table = 'complaints';
-    protected $primaryKey = 'complaint_id';
+    protected $primaryKey = 'id';
 
     protected $fillable = [
-        'complaint_id',
+        'order_id',
         'user_id',
         'product_id',
+        'product_name',
+        'qty',
+        'type',
         'description',
         'status',
         'images'

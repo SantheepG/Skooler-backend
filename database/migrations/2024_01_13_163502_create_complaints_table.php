@@ -12,15 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('complaints', function (Blueprint $table) {
-            $table->id("complaint_id");
+            $table->id();
+            $table->unsignedBigInteger('order_id');
             $table->unsignedBigInteger("user_id");
             $table->unsignedBigInteger("product_id");
+            $table->string('product_name');
+            $table->integer('qty');
+            $table->string('type');
             $table->string("description");
             $table->string("status");
             $table->json('images')->nullable();
 
+            $table->foreign('order_id')->references('id')->on('sales_history');
+
             $table->foreign('user_id')->references('id')->on('users');
-            $table->foreign('product_id')->references('products_id')->on('products');
+            $table->foreign('product_id')->references('id')->on('products');
             $table->timestamps();
         });
     }

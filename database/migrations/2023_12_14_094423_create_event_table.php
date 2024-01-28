@@ -13,10 +13,15 @@ return new class extends Migration
     {
         Schema::create('event', function (Blueprint $table) {
             $table->id();
+            $table->string('event_name');
             $table->string('event_info');
+            $table->string('venue');
+            $table->integer('capacity')->nullable();
+            $table->integer('reserved_slots')->nullable();
+            $table->decimal('payment', 10, 2)->nullable();
             $table->dateTime('event_datetime');
-            $table->dateTime('announced_datetime');
-            $table->dateTime('payment_deadline');
+
+            $table->dateTime('payment_deadline')->nullable();
             $table->timestamps();
         });
     }

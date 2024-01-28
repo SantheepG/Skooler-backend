@@ -13,12 +13,15 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
     protected $table = 'users';
     protected $fillable = [
-        'name',
+        'first_name',
+        'last_name',
         'student_id',
         'mobile_no',
         'email',
-        'home_address',
+        'address',
         'password',
+        'profile_pic',
+        'is_active'
     ];
 
     protected $hidden = [

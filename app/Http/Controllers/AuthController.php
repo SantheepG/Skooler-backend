@@ -18,11 +18,13 @@ class AuthController extends Controller
     public function signup(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string',
+            'first_name' => 'required|string',
+
             'student_id' => 'required|string',
             'mobile_no' => 'required|string',
             'email' => 'required|email',
             'password' => 'required|string|min:8',
+            'is_active' => "required|boolean",
         ]);
 
         if ($validator->fails()) {
@@ -30,16 +32,18 @@ class AuthController extends Controller
         } else {
             $studentId = (int) ($request->input('student_id'));
 
-            $student = Student::where('student_id', $studentId)->first();
+            $student = Student::where('id', $studentId)->first();
             if ($student) {
                 $user = User::create([
-                    'name' => $request->input('name'),
+                    'first_name' => $request->input('first_name'),
+                    'last_name' => null,
                     'student_id' => $studentId,
                     'mobile_no' => $request->input('mobile_no'),
                     'email' => $request->input('email'),
+                    'home_address' => null,
                     'password' => Hash::make($request->input('password')),
-                    'profile_pic' => null
-
+                    'profile_pic' => null,
+                    'is_active' => $request->input('is_active'),
                 ], Response::HTTP_CREATED);
                 return $user;
             } else {
@@ -100,10 +104,27 @@ class AuthController extends Controller
         return $student;
     }
 
-
-
-    public function pwdReset()
+    public function resetPassword(Request $request)
     {
+        $request->validate([
+            'id' => 'required|exists:users,id',
+            'current_password' => 'required',
+            'new_password' => 'required|min:8',
+        ]);
+
+        $user = Auth::user();
+
+        // Verify the current password
+        if (!Hash::check($request->input('current_password'), $user->password)) {
+            return response()->json(['error' => 'Current password is incorrect'], 401);
+        } else {
+            $user = User::find($request->input('id'));
+            $user->password = Hash::make($request->input('new_password'));
+            $user->save();
+        }
+        // Change the password
+
+        return response()->json(['message' => 'Password changed successfully']);
     }
 
     public function ViewStudents()
@@ -120,7 +141,7 @@ class AuthController extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         } else {
             $studentId = (int) ($request->input('student_id'));
-            $student = Student::where('student_id', $studentId)->first();
+            $student = Student::where('id', $studentId)->first();
             if ($student) {
                 return response([
                     'message' => "found"
@@ -131,5 +152,16 @@ class AuthController extends Controller
                 ]);
             }
         }
+    }
+
+
+    public function deleteUser(Request $request)
+    {
+        $user = Auth::user();
+
+        // Delete the user
+
+
+        return response()->json(['message' => 'User deleted successfully']);
     }
 }

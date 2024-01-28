@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\Review;
+use App\Models\Subcategory;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
@@ -19,7 +21,7 @@ class ProductController extends Controller
 
         // Iterating through each product and calculate the average rating
         foreach ($products as $product) {
-            $ratings = Review::where('product_id', $product->products_id)->pluck('rating')->toArray();
+            $ratings = Review::where('product_id', $product->id)->pluck('rating')->toArray();
             $averageRating = (count($ratings) > 0) ? array_sum($ratings) / count($ratings) : 0;
 
             // Adding the average rating to each product's object
@@ -58,12 +60,12 @@ class ProductController extends Controller
 
     public function getProduct($id)
     {
-        $product = Product::where('products_id', $id)->first();
+        $product = Product::where('id', $id)->first();
         $reviews = Review::where('product_id', $id)->get();
 
 
         if ($product) {
-            $ratings = Review::where('product_id', $product->products_id)->pluck('rating')->toArray();
+            $ratings = Review::where('product_id', $product->id)->pluck('rating')->toArray();
             $averageRating = (count($ratings) > 0) ? array_sum($ratings) / count($ratings) : 0;
 
             $product->avg_rating = $averageRating;
@@ -76,18 +78,18 @@ class ProductController extends Controller
 
     public function fetchRelatedProducts($id)
     {
-        $product = Product::where('products_id', $id)->first();
+        $product = Product::where('id', $id)->first();
 
         if ($product) {
             $category_id = $product->category_id;
 
             $relatedProducts = Product::where('category_id', $category_id)
-                ->where('products_id', '!=', $id)
+                ->where('id', '!=', $id)
                 ->take(3)
                 ->get();
 
             if ($relatedProducts->count() < 3) {
-                $additionalProducts = Product::where('products_id', '!=', $id)
+                $additionalProducts = Product::where('id', '!=', $id)
                     ->take(3 - $relatedProducts->count())
                     ->get();
 
@@ -121,8 +123,8 @@ class ProductController extends Controller
             'discount' => 'numeric|nullable',
             'discounted_price' => 'numeric|nullable',
             'images' => 'array|nullable',
-            'category_id' => 'required|exists:category,category_id',
-            'subcategory_id' => 'exists:subcategory,subcategory_id',
+            'category_id' => 'required|exists:category,id',
+            'subcategory_id' => 'nullable|exists:subcategory,id',
         ]);
 
         try {
@@ -135,18 +137,24 @@ class ProductController extends Controller
 
     public function deleteProduct($id)
     {
-        $product = Product::where('products_id', $id)->first();
+        $product = Product::where('id', $id)->first();
 
-        $product->delete();
-        return response()->json([
-            "message" => "Successfully deleted"
-        ], 200);
+        if ($product) {
+            $product->delete();
+            return response()->json([
+                "message" => "Successfully deleted"
+            ], 200);
+        } else {
+            return response()->json([
+                "message" => "Product not found"
+            ], 404);
+        }
     }
 
     public function UpdateProduct(Request $request)
     {
         $validatedData = Validator::make($request->all(), [
-            'products_id' => 'required|integer',
+            'id' => 'required|exists:products,id',
             'name' => 'required|string',
             'description' => 'required|string',
             'stock' => 'required|integer',
@@ -156,8 +164,8 @@ class ProductController extends Controller
             'discount' => 'numeric|nullable',
             'discounted_price' => 'numeric|nullable',
             'images' => 'array|nullable',
-            'category_id' => 'required|exists:category,category_id',
-            'subcategory_id' => 'exists:subcategory,subcategory_id',
+            'category_id' => 'required|exists:category,id',
+            'subcategory_id' => 'exists:subcategory,id',
         ]);
         if ($validatedData->fails()) {
             return response()->json([
@@ -165,8 +173,8 @@ class ProductController extends Controller
                 'errors' => $validatedData->messages()
             ], 422);
         } else {
-            $id = $request->input('products_id');
-            $product = Product::where('products_id', $id)->first();
+            $id = $request->input('id');
+            $product = Product::where('id', $id)->first();
 
 
             if ($product) {
@@ -193,6 +201,34 @@ class ProductController extends Controller
                     'message' => "No Such Event Found!"
                 ], 404);
             }
+        }
+    }
+
+    public function addCategory(Request $request)
+    {
+        $validatedData = $request->validate([
+            'name' => 'required|string',
+        ]);
+
+        try {
+            $category = Category::create($validatedData);
+            return response()->json(['message' => 'Category added successfully', 'category' => $category], 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to add category', 'error' => $e->getMessage()], 500);
+        }
+    }
+    public function addSubCategory(Request $request)
+    {
+        $validatedData = $request->validate([
+            'category_id' => 'required|integer',
+            'name' => 'required|string',
+        ]);
+
+        try {
+            $subcategory = Subcategory::create($validatedData);
+            return response()->json(['message' => 'Subcategory added successfully', 'category' => $subcategory], 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to add subcategory', 'error' => $e->getMessage()], 500);
         }
     }
 }

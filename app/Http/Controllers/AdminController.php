@@ -23,6 +23,7 @@ class AdminController extends Controller
             'mobile_no' => 'required|string',
             'roles' => 'required|json',
             'password' => 'required|string|min:8',
+            'is_active' => 'required|boolean'
         ]);
 
         if ($validator->fails()) {
@@ -38,7 +39,7 @@ class AdminController extends Controller
                 'roles' => $request->input('roles'),
                 'profile_pic' => null,
                 'password' => Hash::make($request->input('password')),
-                'is_active' => true
+                'is_active' => $request->input('is_active')
 
             ], Response::HTTP_CREATED);
             return $admin;
@@ -70,6 +71,32 @@ class AdminController extends Controller
             ], 200)->withCookie($cookie);
         }
     }
+
+    public function updateRoles(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer',
+            'roles' => 'required|json',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        } else {
+
+            $admin = Admin::find($request->input('id'));
+            if (!$admin) {
+                return response()->json(['error' => 'Admin not found'], 404);
+            } else {
+                // Update the string attribute
+                $admin->roles = $request->input('roles');
+                $admin->save();
+            }
+
+            return response([
+                'message' => "updated success",
+            ], 200);
+        }
+    }
+
 
     public function Admin()
     {
@@ -146,6 +173,23 @@ class AdminController extends Controller
             return response()->json(['message' => 'User not found'], 404);
         }
     }
+
+
+    public function DeleteAdmin($id)
+    {
+        $admin = Admin::where('id', $id)->first();
+        if (!$admin) {
+            return response()->json(['error' => 'Admin not found'], 404);
+        } else {
+
+            $admin->delete();
+        }
+
+        return response([
+            'message' => "Admin deleted",
+        ], 200);
+    }
+
 
     public function fetchProducts()
     {
