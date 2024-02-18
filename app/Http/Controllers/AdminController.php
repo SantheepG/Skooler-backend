@@ -11,9 +11,26 @@ use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Validator;
+use App\Repository\IAdminRepo;
 
 class AdminController extends Controller
 {
+    private IAdminRepo $adminRepo;
+
+    public function __construct(IAdminRepo $adminRepo)
+    {
+        $this->adminRepo = $adminRepo;
+    }
+    //Stats for admin dashboard : admin, user, sales counts
+    public function fetchStats()
+    {
+        return $this->adminRepo->FetchStats();
+    }
+    public function fetchAdmins()
+    {
+        return $this->adminRepo->GetAllAdmins();
+    }
+
     public function AdminSignup(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -30,19 +47,8 @@ class AdminController extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         } else {
 
-            $admin = Admin::create([
-                'first_name' => $request->input('first_name'),
-                'last_name' => $request->input('last_name'),
-                'email' => $request->input('email'),
-                'mobile_no' => $request->input('mobile_no'),
-                'address' => null,
-                'roles' => $request->input('roles'),
-                'profile_pic' => null,
-                'password' => Hash::make($request->input('password')),
-                'is_active' => $request->input('is_active')
-
-            ], Response::HTTP_CREATED);
-            return $admin;
+            $response = $this->adminRepo->AddAdmin($request);
+            return $response;
         }
     }
 
@@ -97,12 +103,25 @@ class AdminController extends Controller
         }
     }
 
+    public function updateDetails(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required|string',
+            'last_name' => 'required|string',
+        ]);
 
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        } else {
+
+            $response = $this->adminRepo->UpdateDetails($request);
+            return $response;
+        }
+    }
     public function Admin()
     {
         return Auth::user();
     }
-
 
     public function AdminLogout()
     {
@@ -112,13 +131,8 @@ class AdminController extends Controller
         ])->withCookie($cookie);
     }
 
-    public function fetchAdmins()
-    {
-        $admins = Admin::all();
-        return response([
-            'admins' => $admins
-        ], 200);
-    }
+
+
 
     public function fetchUsers()
     {

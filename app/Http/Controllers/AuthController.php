@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use App\Models\User;
-use Dotenv\Validator as DotenvValidator;
+use App\Repository\IAuthRepo;
 use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Auth;
@@ -13,14 +13,22 @@ use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Validator;
 
+
 class AuthController extends Controller
 {
+    private IAuthRepo $authRepo;
+
+    public function __construct(IAuthRepo $authRepo)
+    {
+        $this->authRepo = $authRepo;
+    }
+    //user signup
     public function signup(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string',
-
-            'student_id' => 'required|string',
+            'last_name' => 'required|string',
+            'student_id' => 'required|exists:students,id',
             'mobile_no' => 'required|string',
             'email' => 'required|email',
             'password' => 'required|string|min:8',
@@ -30,30 +38,20 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         } else {
-            $studentId = (int) ($request->input('student_id'));
+            //$validatedData = $validator->validated();
 
-            $student = Student::where('id', $studentId)->first();
-            if ($student) {
-                $user = User::create([
-                    'first_name' => $request->input('first_name'),
-                    'last_name' => null,
-                    'student_id' => $studentId,
-                    'mobile_no' => $request->input('mobile_no'),
-                    'email' => $request->input('email'),
-                    'home_address' => null,
-                    'password' => Hash::make($request->input('password')),
-                    'profile_pic' => null,
-                    'is_active' => $request->input('is_active'),
-                ], Response::HTTP_CREATED);
-                return $user;
+            $createdUser = $this->authRepo->Signup($request);
+            if (!$createdUser) {
+                return response()->json(['error' => "An error occurred"], 403);
             } else {
-                return response([
-                    'message' => "Invalid student id"
-                ], Response::HTTP_UNAUTHORIZED);
+                return response()->json([
+                    'message' => 'created',
+                    'status' => 201
+                ], 201);
             }
         }
     }
-
+    //user login
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -63,29 +61,36 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         } else {
-            if (!Auth::attempt($request->only('mobile_no', 'password'))) {
+
+            $reponse = $this->authRepo->login($request);
+
+            if (!$reponse) {
                 return response([
                     'message' => ['These credentials do not match our records.']
                 ], Response::HTTP_UNAUTHORIZED);
+            } else {
+                $token = $request->user()->createToken('token')->plainTextToken;
+                $cookie = cookie('jwt', $token, 60 * 24);
+                return response([
+                    'message' => "Login success",
+                    'user' => Auth::user(),
+                    'token' => $token
+                ], 200)->withCookie($cookie);
             }
-
-
-            $token = $request->user()->createToken('token')->plainTextToken;
-            $cookie = cookie('jwt', $token, 60 * 24);
-            return response([
-                'message' => "Login success",
-                'user' => Auth::user(),
-                'token' => $token
-            ], 200)->withCookie($cookie);
+        }
+    }
+    //fetching user data
+    public function user()
+    {
+        $user = $this->authRepo->getUser();
+        if ($user) {
+            return (response()->json(['user' => $user], 200));
+        } else {
+            return (response()->json(['message' => 'not found'], 400));
         }
     }
 
-    public function user()
-    {
-        return Auth::user();
-    }
-
-
+    //user logout
     public function logout()
     {
         $cookie = Cookie::forget('jwt');
@@ -93,7 +98,7 @@ class AuthController extends Controller
             'message' => "logged out"
         ])->withCookie($cookie);
     }
-
+    //Adding student 
     public function AddStudent(Request $request)
     {
         $student = Student::create([
@@ -103,65 +108,52 @@ class AuthController extends Controller
         ], Response::HTTP_CREATED);
         return $student;
     }
-
+    //Reset pwd
     public function resetPassword(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'id' => 'required|exists:users,id',
             'current_password' => 'required',
             'new_password' => 'required|min:8',
         ]);
 
-        $user = Auth::user();
-
-        // Verify the current password
-        if (!Hash::check($request->input('current_password'), $user->password)) {
-            return response()->json(['error' => 'Current password is incorrect'], 401);
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
         } else {
-            $user = User::find($request->input('id'));
-            $user->password = Hash::make($request->input('new_password'));
-            $user->save();
+            $reponse = $this->authRepo->ResetPassword($request);
+
+            if ($reponse) {
+                return response()->json(['error' => 'Current password is incorrect'], 401);
+            } else {
+                return response()->json(['message' => 'Password changed successfully']);
+            }
         }
-        // Change the password
-
-        return response()->json(['message' => 'Password changed successfully']);
     }
 
-    public function ViewStudents()
-    {
-    }
-
-
-    public function CheckId(Request $request)
+    //Sign up validation check
+    public function ValidationCheck(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'student_id' => 'required|string',
+            'student_id' => 'required|exists:students,id',
+            'email' => 'required|email',
+            'mobile_no' => 'required|string'
         ]);
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         } else {
             $studentId = (int) ($request->input('student_id'));
-            $student = Student::where('id', $studentId)->first();
-            if ($student) {
+            $mobile_no = ($request->input('mobile_no'));
+            $emailID = ($request->input('email'));
+            $check = $this->authRepo->validationCheck($mobile_no, $emailID, $studentId);
+            if ($check) {
                 return response([
-                    'message' => "found"
-                ], Response::HTTP_ACCEPTED);
+                    'message' => $check
+                ], 200);
             } else {
                 return response([
-                    'message' => "not found"
-                ]);
+                    'message' => "error"
+                ], 404);
             }
         }
-    }
-
-
-    public function deleteUser(Request $request)
-    {
-        $user = Auth::user();
-
-        // Delete the user
-
-
-        return response()->json(['message' => 'User deleted successfully']);
     }
 }

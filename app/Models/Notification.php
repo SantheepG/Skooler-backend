@@ -5,13 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class CardInfo extends Model
+class Notification extends Model
 {
     use HasFactory;
-    protected $table = "card_info";
+    protected $table = 'notifications';
+    protected $primaryKey = 'id';
     protected $fillable = [
+        'name',
+        'info',
+        'type',
+        'is_read',
         'user_id',
-        'card_details'
-
     ];
 }

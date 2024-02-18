@@ -5,35 +5,30 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\Booking;
+use App\Repository\IOrderRepo;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Notification;
 
 class OrderController extends Controller
 {
-    //fetching orders & bookings of a user
-    public function getOrders(Request $request)
+    private IOrderRepo $orderRepo;
+
+    public function __construct(IOrderRepo $orderRepo)
     {
-        $validator = Validator::make($request->all(), [
-            'user_id' => 'required|integer',
 
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        } else {
-
-            $user_id = (int) $request->input('user_id');
-
-            // Retrieving orders associated with the user_id
-            $orders = Order::where('user_id', $user_id)->get();
-
-            // Retrieving orders associated with the user_id
-            $bookings = Booking::where('user_id', $user_id)->get();
-
-            return response()->json(['orders' => $orders, 'bookings' => $bookings], 200);
+        $this->orderRepo = $orderRepo;
+    }
+    //fetching orders & bookings of a user
+    public function getUserOrders($id)
+    {
+        try {
+            $orders = $this->orderRepo->FetchUserOrders($id);
+            return $orders;
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
-
     //Placing order of a user
     public function PlaceOrder(Request $request)
     {
@@ -51,6 +46,21 @@ class OrderController extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         } else {
 
+            $name = 'Your order has been placed';
+            $info = 'Thank you for your purchase';
+            $type = 'order';
+            $is_read = false;
+            $user_id = $request->user_id;
+
+            $notification = new Notification();
+
+            $notification->name = $name;
+            $notification->info = $info;
+            $notification->type = $type;
+            $notification->is_read = $is_read;
+            $notification->user_id = $user_id;
+
+
             $order = Order::create([
                 'user_id' => $request->input('user_id'),
                 'products' => $request->input('products'),
@@ -62,6 +72,7 @@ class OrderController extends Controller
                 'dispatch_address' => $request->input('dispatch_address'),
                 'reviewed' => false
             ], Response::HTTP_CREATED);
+            $notification->save();
             return $order;
         }
     }
@@ -91,6 +102,20 @@ class OrderController extends Controller
                     return response()->json(['error' => 'Order not found.'], 404);
                 }
 
+                $name = 'Your order details have been updated';
+                $info = 'Please check for more info';
+                $type = 'order';
+                $is_read = false;
+                $user_id = $request->user_id;
+
+                $notification = new Notification();
+
+                $notification->name = $name;
+                $notification->info = $info;
+                $notification->type = $type;
+                $notification->is_read = $is_read;
+                $notification->user_id = $user_id;
+
                 $order->order_status = $request->order_status;
                 if ($request->has('dispatch_datetime')) {
                     $order->dispatch_datetime = $request->dispatch_datetime;
@@ -99,7 +124,7 @@ class OrderController extends Controller
                 if ($request->has('dispatch_address')) {
                     $order->dispatch_address = $request->dispatch_address;
                 }
-
+                $notification->save();
                 $order->save();
 
                 return response()->json(['message' => 'Order updated successfully.'], 200);

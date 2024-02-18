@@ -5,13 +5,31 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Complaint;
 use App\Models\User;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Validator;
+use App\Repository\IComplaintRepo;
 
 class ComplaintController extends Controller
 {
+    private IComplaintRepo $complaintRepo;
+
+    public function __construct(IComplaintRepo $complaintRepo)
+    {
+        $this->complaintRepo = $complaintRepo;
+    }
+    public function fetchUserComplaints($id)
+    {
+        try {
+            $complaints = $this->complaintRepo->FetchUserComplaints($id);
+            return $complaints;
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
+
     public function lodgeComplaint(Request $request)
     {
-        $validatedData = $request->validate([
+        $validator = Validator::make($request->all(), [
             'order_id' => 'required|exists:sales_history,id',
             'user_id' => 'required|exists:users,id',
             'product_id' => 'required|exists:products,id',
@@ -22,11 +40,12 @@ class ComplaintController extends Controller
             'status' => 'required|string',
             'images' => 'nullable|json',
         ]);
-        try {
-            $complaint = Complaint::create($validatedData);
-            return response()->json(['message' => 'Complaint lodged', 'data' => $complaint], 201);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to lodge', 'error' => $e->getMessage()], 500);
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        } else {
+            $validatedData = $validator->validated();
+            $response = $this->complaintRepo->LodgeComplaint($validatedData);
+            return $response;
         }
     }
 
@@ -41,6 +60,22 @@ class ComplaintController extends Controller
             if (!$complaint) {
                 return response()->json(['error' => 'Complaint not found'], 404);
             } else {
+
+                $name = 'There\'s an update on your recent complaint';
+                $info = 'Tap to view';
+                $type = 'complaint';
+                $is_read = false;
+                $user_id = $request->user_id;
+
+                $notification = new Notification();
+
+                $notification->name = $name;
+                $notification->info = $info;
+                $notification->type = $type;
+                $notification->is_read = $is_read;
+                $notification->user_id = $user_id;
+                $notification->save();
+
                 $complaint->status = $validatedData['status'];
                 $complaint->save();
                 return response()->json(['message' => 'updated', 'complaint' => $complaint], 200);
@@ -70,22 +105,6 @@ class ComplaintController extends Controller
         return response()->json(['complaints' => $complaints], 200);
     }
 
-    public function fetchUserComplaints(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'user_id' => 'required|integer',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        } else {
-
-            $user_id = (int) $request->input('user_id');
-            $complaints = Complaint::where('user_id', $user_id)->get();
-
-            return response()->json(['complaints' => $complaints], 200);
-        }
-    }
 
     public function fetchUserContact($id)
     {

@@ -1,0 +1,250 @@
+<?php
+
+namespace App\Repository;
+
+use Illuminate\Http\Request;
+use App\Models\Avatar;
+use App\Models\User;
+use App\Models\CardInfo;
+use App\Models\CartItem;
+use App\Models\Notification;
+use App\Models\Review;
+use App\Models\Order;
+
+class UserRepo implements IUserRepo
+{
+    public function UpdateAddress(Request $request)
+    {
+        $user = User::find($request->input('id'));
+
+        if (!$user) {
+            return false;
+        } else {
+            $user->update($request->only('address'));
+            return true;
+        }
+    }
+    public function UpdateName(Request $request)
+    {
+        $user = User::find($request->input('id'));
+
+        if (!$user) {
+            return false;
+        } else {
+            $user->update($request->only('first_name', 'last_name'));
+            return true;
+        }
+    }
+    public function UpdateAvatar(Request $request)
+    {
+        $imageBinary = file_get_contents($request->file('avatar')->path());
+        $user_id = $request->input('user_id');
+        $profileAvatar = Avatar::find($user_id);
+        if ($profileAvatar) {
+            $profileAvatar->avatar = $imageBinary;
+            $profileAvatar->save();
+            return true;
+        } else {
+            $avatarUpdate = Avatar::create(["user_id" => $user_id, "avatar" => $imageBinary]);
+            return true;
+        }
+    }
+    public function GetAvatar($id)
+    {
+        $user = Avatar::where('user_id', $id)->first();
+        if ($user) {
+            return ($user->avatar);
+        } else {
+            return false;
+        }
+    }
+    public function AddToCart(Request $request)
+    {
+        $user_id = $request->input('user_id');
+        $product_id = $request->input('product_id');
+        $cartItem = CartItem::where('user_id', $user_id)
+            ->where('product_id', $product_id)
+            ->first();
+        if (!$cartItem) {
+            $cartItem = new CartItem();
+            $cartItem->user_id = $user_id;
+            $cartItem->product_id = $product_id;
+            $cartItem->product_name = $request->input("product_name");
+            $cartItem->quantity = $request->input("quantity");
+            $cartItem->price = $request->input("price");
+            $cartItem->totalPrice = $request->input("totalPrice");
+            $cartItem->save();
+            return true;
+        } else {
+            if ($cartItem) {
+                $cartItem->quantity = $request->input("quantity");
+                $cartItem->price = $request->input("price");
+                $cartItem->totalPrice = $request->input("totalPrice");
+                $cartItem->save();
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+    public function UpdateCartItem($id, $qty, $price)
+    {
+        $cartItem = CartItem::find($id);
+        if ($cartItem) {
+            $cartItem->quantity = $qty;
+            $cartItem->totalPrice = $qty * $price;
+            $cartItem->save();
+
+            $user_id = $cartItem->user_id;
+            $subTotal = CartItem::where('user_id', $user_id)
+                ->select(CartItem::raw('SUM(totalPrice) as total'))
+                ->first()
+                ->total;
+            return $subTotal;
+        } else {
+            return false;
+        }
+    }
+    public function DeleteFromCart($id)
+    {
+        $cartItem = CartItem::where('id', $id)->first();
+
+        if ($cartItem) {
+            $user_id = $cartItem->user_id;
+            $cartItem->delete();
+            $subTotal = CartItem::where('user_id', $user_id)
+                ->select(CartItem::raw('SUM(totalPrice) as total'))
+                ->first()
+                ->total;
+
+            return response()->json(['message' => 'deleted', 'subtotal' => $subTotal], 200);
+        } else {
+            return response()->json(['message' => 'not found'], 404);
+        }
+    }
+    public function FetchCart($id)
+    {
+        $cartItems = CartItem::where('user_id', $id)->get();
+        $subTotal = CartItem::where('user_id', $id)
+            ->select(CartItem::raw('SUM(totalPrice) as total'))
+            ->first()
+            ->total;
+        return [$cartItems, $subTotal];
+    }
+    public function GetNotifications($id)
+    {
+        $alerts = Notification::where('user_id', $id)->get();
+        $complaintAlerts = $alerts->filter(function ($alert) {
+            return $alert->type === 'complaint';
+        })->values()->all();
+
+        $reviewAlerts = $alerts->filter(function ($alert) {
+            return $alert->type === 'review';
+        })->values()->all();
+
+        $orderAlerts = $alerts->filter(function ($alert) {
+            return $alert->type === 'order';
+        })->values()->all();
+
+        return [$complaintAlerts, $reviewAlerts, $orderAlerts];
+    }
+    public function UpdateAlertStatus($id)
+    {
+        Notification::where('user_id', $id)->update(['is_read' => true]);
+        return true;
+    }
+    public function AddCard(Request $request)
+    {
+        $existingCard = CardInfo::where('user_id', (int)$request->input('user_id'))->first();
+        if ($existingCard) {
+            $existingCard->update(['card_details' => $request->input('card_details')]);
+            return ["updated", $existingCard];
+        } else {
+            $cardInfo = CardInfo::create([
+                'user_id' => (int)$request->input('user_id'),
+                'card_details' => $request->input('card_details'),
+            ]);
+            return ['details added', $cardInfo];
+        }
+    }
+    public function FetchCards($id)
+    {
+        $cards = CardInfo::where("user_id", $id)->first();
+        $card_details = $cards->card_details;
+        if ($card_details) {
+            return $card_details;
+        } else {
+            return false;
+        }
+    }
+    public function GetUserReviews($id)
+    {
+        $reivewed = Review::where('user_id', $id)->get();
+        $toReview = Order::where('user_id', $id)
+            ->where('reviewed', false)
+            ->get();
+        return [$reivewed, $toReview];
+    }
+    public function DeleteReview($id)
+    {
+        $review = Review::where('id', $id)->first();
+        if ($review) {
+            $review->delete();
+            return true;
+        } else {
+            return false;
+        }
+    }
+    public function RateProduct(Request $request)
+    {
+        $review = Review::where('product_id', $request->product_id)
+            ->where('user_id', $request->user_id)
+            ->first();
+        $name = 'Thank you for your valuable review.';
+        $info = 'Happy shopping';
+        $type = 'review';
+        $is_read = false;
+        $user_id = $request->user_id;
+
+        $notification = new Notification();
+
+        $notification->name = $name;
+        $notification->info = $info;
+        $notification->type = $type;
+        $notification->is_read = $is_read;
+        $notification->user_id = $user_id;
+        if ($review) {
+            $review->update(['rating' => $request->rating]);
+
+            if ($request->comment !== null) {
+                $review->update(['comment' => $request->comment]);
+                $notification->save();
+            }
+
+            return true;
+        } else {
+            $data = [
+                'product_id' => $request->product_id,
+                'product_name' => $request->product_name,
+                'user_id' => $request->user_id,
+                'user_name' => $request->user_name,
+                'rating' => $request->rating,
+                'comment' => $request->comment,
+            ];
+
+            Review::create($data);
+            $notification->save();
+            return true;
+        }
+    }
+    public function DeleteUser($id)
+    {
+        $user = User::findOrFail($id);
+        if ($user) {
+            $user->delete();
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
