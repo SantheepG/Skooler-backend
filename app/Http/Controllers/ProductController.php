@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
-
+use Illuminate\Routing\Controller;
 use App\Repository\IProductRepo;
 
 class ProductController extends Controller
@@ -260,6 +260,26 @@ class ProductController extends Controller
             }
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
+
+    public function updateStock($id, $stock)
+    {
+        try {
+
+            $response = $this->productRepo->StockUpdate($id, $stock);
+            if ($response) {
+                return response()->json([
+                    "message" => "updated"
+                ], 200);
+            } else {
+                return response()->json([
+                    "message" => "Product not found"
+                ], 404);
+            }
+        } catch (\Exception $e) {
+
+            return response()->json(['message' => 'Failed to update stock', 'error' => $e->getMessage()], 500);
         }
     }
 }

@@ -9,8 +9,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ComplaintController;
-use App\Http\Controllers\QuoteController;
-use App\Http\Controllers\Controller;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -24,9 +23,31 @@ use App\Http\Controllers\Controller;
 */
 
 //User 
+/**
+ * Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
+});
+ */
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('admin', [AdminController::class, 'admin']);
+    Route::post('logout/admin', [AdminController::class, 'adminlogout']);
+});
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('user', [AuthController::class, 'user']);
+    Route::put('user/reset', [AuthController::class, 'resetPassword']);
+    Route::post('user/logout', [AuthController::class, 'logout']);
+});
+
+
+Route::post('user/login', [AuthController::class, 'login']);
+
 Route::post('user/signup/validate', [AuthController::class, 'ValidationCheck']);
 Route::post('user/signup', [AuthController::class, 'signup']);
-Route::post('user/login', [AuthController::class, 'login']);
+
 Route::post('user/avatar/update', [UserController::class, 'updateAvatar']);
 Route::get('user/avatar/get/{id}', [UserController::class, 'getAvatar']);
 Route::delete('user/delete/{id}', [AuthController::class, 'deleteUser']);
@@ -53,13 +74,29 @@ Route::post('/product/rate', [UserController::class, 'rateProduct']);
 Route::post('/user/card/add', [UserController::class, 'addCard']);
 Route::get('user/card/{id}', [UserController::class, 'getCards']);
 
+Route::get('fetchusers', [UserController::class, 'fetchUsers']);
+Route::put('/user/updatestatus', [UserController::class, 'changeUserStatus']);
+
+Route::get('user/complaint/contact/{id}', [UserController::class, 'fetchUserContact']);
+
+Route::get('/cart/stockcheck/{id}/{qty}', [UserController::class, 'StockCheck']);
+Route::get('/cart/fetchtotal/{id}', [UserController::class, 'fetchSubtotal']);
+
 //Student
 Route::post('add', [AuthController::class, 'AddStudent']);
 Route::post('/checkid', [AuthController::class, 'CheckId']);
 
 //Admin
+Route::post('login/admin', [AdminController::class, 'adminlogin']);
+Route::post('adminsignup', [AdminController::class, 'adminSignup']);
+
+Route::put('/admin/updatestatus', [AdminController::class, 'changeAdminStatus']);
+Route::delete('/admin/delete/{id}', [AdminController::class, 'deleteAdmin']);
+
 Route::get('/school/fetch/stats', [AdminController::class, 'fetchStats']);
 
+Route::get('fetchadmins', [AdminController::class, 'fetchAdmins']);
+Route::put('admin/roles/update', [AdminController::class, 'updateRoles']);
 
 //Product 
 Route::post('/avgrating', [ProductController::class, 'getAvgRating']);
@@ -73,6 +110,7 @@ Route::get('/categories/{id}', [ProductController::class, 'getSubcategories']);
 Route::get('/products', [ProductController::class, 'fetchProducts']);
 Route::post('category/add', [ProductController::class, 'addCategory']);
 Route::post('subcategory/add', [ProductController::class, 'addSubCategory']);
+Route::put('/stock/{id}/{stock}', [ProductController::class, 'updateStock']);
 
 //Search results
 Route::post('/search', [ProductController::class, 'search']);
@@ -85,62 +123,19 @@ Route::post('/event/add', [EventController::class, 'store']);
 Route::put('/events/{id}/edit', [EventController::class, 'update']);
 Route::delete('/events/{id}/delete', [EventController::class, 'deleteEvent']);
 
-
-//Admin 
-Route::post('adminsignup', [AdminController::class, 'AdminSignup']);
-Route::post('adminlogin', [AdminController::class, 'AdminLogin']);
-
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('admin', [AdminController::class, 'Admin']);
-    Route::post('adminlogout', [AdminController::class, 'AdminLogout']);
-});
-
-Route::get('/complaints', [ComplaintController::class, 'fetchComplaints']);
-Route::put('/stock/{id}/{stock}', [AdminController::class, 'updateStock']);
-
-Route::post('adminlogin', [AdminController::class, 'AdminLogin']);
-Route::get('fetchadmins', [AdminController::class, 'fetchAdmins']);
-Route::get('fetchusers', [AdminController::class, 'fetchUsers']);
-Route::put('changeuserstatus', [AdminController::class, 'ChangeUserStatus']);
-Route::put('changeadminstatus', [AdminController::class, 'ChangeAdminStatus']);
-Route::delete('/admin/delete/{id}', [AdminController::class, 'DeleteAdmin']);
-//User 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-Route::post('signup', [AuthController::class, 'signup']);
-Route::post('login', [AuthController::class, 'login']);
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('user', [AuthController::class, 'user']);
-    Route::put('user/reset', [AuthController::class, 'resetPassword']);
-    Route::post('logout', [AuthController::class, 'logout']);
-});
-
-Route::get('/cart/stockcheck/{id}/{qty}', [UserController::class, 'StockCheck']);
-Route::get('/cart/fetchtotal/{id}', [UserController::class, 'fetchSubtotal']);
-
-
-
-//Complaints
-
-Route::post('login/a', [Controller::class, 'adminlogin']);
-Route::post('logout/a', [Controller::class, 'adminlogout']);
-
-
-
-Route::get('/admin/orders', [OrderController::class, 'fetchAllOrders']);
-Route::put('admin/roles/update', [AdminController::class, 'updateRoles']);
-
 Route::post('/user/book', [EventController::class, 'bookaTicket']);
 Route::post('/user/bookings', [EventController::class, 'fetchBookings']);
 
-
-
+//Complaints
+Route::get('/complaints', [ComplaintController::class, 'fetchComplaints']);
 Route::post('user/complaint/lodge', [ComplaintController::class, 'lodgeComplaint']);
-Route::get('user/complaint/contact/{id}', [ComplaintController::class, 'fetchUserContact']);
+Route::put('admin/complaint/update', [ComplaintController::class, 'changeComplaintStatus']);
+Route::delete('complaint/delete/{id}', [ComplaintController::class, 'deleteComplaint']);
+
+//User 
+
 
 //order
 Route::put('admin/order/update', [OrderController::class, 'updateOrder']);
-
-//complaint
-Route::put('admin/complaint/update', [ComplaintController::class, 'changeComplaintStatus']);
+Route::get('/admin/orders', [OrderController::class, 'fetchAllOrders']);
+Route::delete('/admin/order/delete/{id}', [OrderController::class, 'deleteOrder']);

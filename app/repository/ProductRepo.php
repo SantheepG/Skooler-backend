@@ -161,4 +161,14 @@ class ProductRepo implements IProductRepo
             return false;
         }
     }
+    public function StockUpdate($id, $stock)
+    {
+        $product = Product::find($id);
+
+        if ($product) {
+            $product->stock = $stock;
+            $product->save();
+        }
+        return $product ? true : false;
+    }
 }

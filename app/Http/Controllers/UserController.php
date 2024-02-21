@@ -2,13 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
-use App\Models\Subcategory;
-use App\Models\Product;
-
-use App\Models\Event;
 use Illuminate\Http\Request;
-
+use Illuminate\Routing\Controller;
 use App\Repository\IUserRepo;
 use Illuminate\Support\Facades\Validator;
 
@@ -131,9 +126,7 @@ class UserController extends Controller
         try {
             $response = $this->userRepo->GetNotifications($id);
             return response()->json([
-                "complaintAlerts" => $response[0],
-                "reviewAlerts" => $response[1],
-                "orderAlerts" => $response[2],
+                "alerts" => $response,
                 "status" => 200
             ], 200);
         } catch (\Exception $e) {
@@ -311,6 +304,68 @@ class UserController extends Controller
                 return response()->json([
                     "message" => "not found",
                 ], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
+
+    public function fetchUsers()
+    {
+        try {
+            $response = $this->userRepo->GetUsers();
+            if ($response) {
+                return response()->json([
+                    "users" => $response,
+                    "status" => 200
+                ], 200);
+            } else {
+
+                return response()->json([
+                    "message" => "not found",
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
+    public function changeUserStatus(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'id' => 'required|exists:users,id',
+                'isActive' => 'required|boolean',
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 422);
+            } else {
+                //$validatedData = $validator->validated();
+                $response = $this->userRepo->ChangeUserStatus($request);
+                if ($response) {
+                    return response()->json(['message' => 'Status updated', "users" => $response], 200);
+                } else {
+                    return response()->json(['message' => 'User not found'], 404);
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
+
+    public function fetchUserContact($id)
+    {
+        try {
+            $response = $this->userRepo->FetchUserContact($id);
+            if ($response) {
+                return response()->json([
+                    'user_id' => $response[0],
+                    'fname' => $response[1],
+                    'lname' => $response[2],
+                    'email' => $response[3],
+                    'mobile_no' => $response[4]
+                ], 200);
+            } else {
+                return response()->json(['message' => 'User not found'], 404);
             }
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);

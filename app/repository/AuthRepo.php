@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
+use Illuminate\Support\Facades\Cookie;
+
 class AuthRepo implements IAuthRepo
 {
     //user signup
@@ -29,14 +31,23 @@ class AuthRepo implements IAuthRepo
     //User login
     public function Login(Request $request)
     {
-        $credentials = [
-            "mobile_no" => $request->input("mobile_no"),
-            "password" => $request->input("password")
-        ];
-        if (!Auth::attempt($credentials)) {
-            return false;
+        if (Auth::attempt($request->only('mobile_no', 'password'))) {
+            $user = Auth::user();
+            //Auth::login($user);
+            $token = $request->user()->createToken('token')->plainTextToken;
+            //$cookie = cookie('jwt', $token, 60 * 24);
+            return [$user, $token];
         } else {
-            return true;
+            return false;
+        }
+    }
+    public function GetUser()
+    {
+        if (Auth::check()) {
+
+            return Auth::user();
+        } else {
+            return false;
         }
     }
     //Validating email, mobile no, student id during signup
@@ -54,8 +65,13 @@ class AuthRepo implements IAuthRepo
         return ['phone' => $phone, 'email' => $email, 'id' => $id];
     }
     //user logout
-    public function Logout()
+    public function Logout(Request $request)
     {
+        $response = $request->user()->tokens()->where('id', $request->user()->currentAccessToken()->id)->delete();
+        if ($response) {
+            Cookie::forget('jwt');
+        }
+        $response ? true : false;
     }
     //user pwd reset
     public function ResetPassword(Request $request)
@@ -71,10 +87,7 @@ class AuthRepo implements IAuthRepo
             return true;
         }
     }
-    public function GetUser()
-    {
-        return Auth::user();
-    }
+
     //delete user
 
 }

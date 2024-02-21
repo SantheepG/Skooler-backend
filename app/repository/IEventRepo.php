@@ -13,4 +13,5 @@ interface IEventRepo
     public function DeleteEvent($id);
     public function BookTicket(Request $request, $validatedData);
     public function FetchUserBookings($id);
+    public function RemainingSlots($id);
 }

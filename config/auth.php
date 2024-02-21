@@ -40,13 +40,14 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
-        'admins' => [
+        'api' => [
+            'driver' => 'sanctum',
+            'provider' => 'users',
+            'hash' => false,
+        ],
+        'admin' => [
             'driver' => 'session',
             'provider' => 'admins',
-        ],
-        'users' => [
-            'driver' => 'session',
-            'provider' => 'users',
         ],
     ],
 

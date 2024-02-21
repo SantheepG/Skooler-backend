@@ -11,18 +11,7 @@ class EventRepo implements IEventRepo
 {
     public function FetchEvents()
     {
-        $events =  Event::all();
-        if ($events->count() > 0) {
-            return response()->json([
-                'status' => 200,
-                'events' => $events
-            ], 200);
-        } else {
-            return response()->json([
-                'status' => 404,
-                'message' => 'No Events Found!'
-            ], 404);
-        }
+        return Event::all();
     }
     public function AddEvent(Request $request)
     {
@@ -65,9 +54,15 @@ class EventRepo implements IEventRepo
     public function BookTicket(Request $request, $validatedData)
     {
         $booking = Booking::create($validatedData);
-        if ($booking) {
+        $event = Event::find((int)$validatedData['event_id']);
+        $reserved_slots = $event->reserved_slots;
+        if (($event->capacity === $event->reserved_slots) || ($event->capacity < ($event->reserved_slots + (int)($validatedData['tickets'])))) {
+            return "Capacity reached.Booking failed";
+        } else {
+            $reserved_slots = $reserved_slots + (int)$validatedData['tickets'];
+            $event->update(['reserved_slots' => $reserved_slots]);
             $name = 'Ticket has been booked';
-            $info = 'You may download your e-reciept from bookings. Thank you';
+            $info = 'You can download your e-reciept from bookings. Thank you';
             $type = 'booking';
             $is_read = false;
             $user_id = $request->user_id;
@@ -80,8 +75,13 @@ class EventRepo implements IEventRepo
             $notification->is_read = $is_read;
             $notification->user_id = $user_id;
             $notification->save();
-        }
-        return $booking ? true : false;
+            return "Booked";
+        };
+    }
+    public function RemainingSlots($id)
+    {
+        $event = Event::find($id);
+        return $event->capacity - $event->reserved_slots;
     }
     public function FetchUserBookings($id)
     {

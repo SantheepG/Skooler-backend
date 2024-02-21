@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Student;
-use App\Models\User;
+
 use App\Repository\IAuthRepo;
 use Illuminate\Http\Request;
-
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Routing\Controller;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Validator;
 
@@ -62,20 +61,19 @@ class AuthController extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         } else {
 
-            $reponse = $this->authRepo->login($request);
-
-            if (!$reponse) {
+            $response = $this->authRepo->login($request);
+            if ($response) {
+                return response([
+                    'message' => "Login success",
+                    'user' => $response[0],
+                    'token' => $response[1],
+                    'status' => 200
+                ], 200);
+                //], 200)->withCookie($response[2]);
+            } else {
                 return response([
                     'message' => ['These credentials do not match our records.']
                 ], Response::HTTP_UNAUTHORIZED);
-            } else {
-                $token = $request->user()->createToken('token')->plainTextToken;
-                $cookie = cookie('jwt', $token, 60 * 24);
-                return response([
-                    'message' => "Login success",
-                    'user' => Auth::user(),
-                    'token' => $token
-                ], 200)->withCookie($cookie);
             }
         }
     }
@@ -83,20 +81,36 @@ class AuthController extends Controller
     public function user()
     {
         $user = $this->authRepo->getUser();
+        //$user = Auth::guard('users')->user();
         if ($user) {
             return (response()->json(['user' => $user], 200));
         } else {
-            return (response()->json(['message' => 'not found'], 400));
+            return (response()->json(['message' => 'Unauthorized'], 401));
         }
     }
 
     //user logout
-    public function logout()
+    public function logout(Request $request)
     {
-        $cookie = Cookie::forget('jwt');
-        return response([
-            'message' => "logged out"
-        ])->withCookie($cookie);
+        try {
+            $response = $this->authRepo->Logout($request);
+            //$user = Auth::guard('users')->user();
+            //$user->tokens()->delete();
+
+            // Clear the authentication for the 'admins' guard
+            //Auth::guard('users')->logout();
+
+            // Remove the JWT cookie
+            $cookie = Cookie::forget('jwt');
+            if ($response) {
+                return response([
+                    'message' => "logged out",
+                    'status' => 200
+                ], 200);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
     }
     //Adding student 
     public function AddStudent(Request $request)

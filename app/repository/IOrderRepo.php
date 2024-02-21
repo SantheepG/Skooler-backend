@@ -10,4 +10,5 @@ interface IOrderRepo
     public function PlaceOrder(Request $request);
     public function FetchOrders();
     public function UpdateOrder(Request $request);
+    public function DeleteOrder($id);
 }

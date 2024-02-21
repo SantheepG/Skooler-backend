@@ -2,13 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Controllers\Controller;
+use Illuminate\Routing\Controller;
 
 use App\Repository\IEventRepo;
 
+/**
+ * 1. Fetching events
+ * 2. Storing events
+ * 3. Updating events
+ * 4. Show particular event
+ * 5. Deleting an event
+ * 6. Booking for an event
+ * 7. Booking availability for an event
+ * 8. Fetching bookings of a user
+ * 9. Fetching all bookings
+ */
 class EventController extends Controller
 {
     private IEventRepo $eventRepo;
@@ -22,7 +32,17 @@ class EventController extends Controller
     {
         try {
             $events = $this->eventRepo->FetchEvents();
-            return $events;
+            if ($events) {
+                return response()->json([
+                    'status' => 200,
+                    'events' => $events
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'No Events Found!'
+                ], 404);
+            }
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
@@ -145,12 +165,32 @@ class EventController extends Controller
         }
     }
 
+    public function getRemainingSlots($id)
+    {
+        try {
+            $response = $this->eventRepo->RemainingSlots($id);
+            if ($response) {
+                return response()->json([
+                    'status' => 200,
+                    "remaining" => $response
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => 404,
+                    'message' => "Not Found!"
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
 
     public function bookaTicket(Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [
                 'event_id' => 'required|exists:event,id',
+                'event_name' => 'required|string',
                 'user_id' => 'required|exists:users,id',
                 'tickets' => 'required|integer',
                 'paid' => 'required|numeric',
@@ -166,12 +206,12 @@ class EventController extends Controller
 
                 $validatedData = $validator->validated();
                 $response = $this->eventRepo->BookTicket($request, $validatedData);
-                if ($response) {
+                if ($response === "Booked") {
                     return response()->json(['status' => 201, 'message' => 'success'], 201);
                 } else {
                     return response()->json([
                         'status' => 500,
-                        'message' => "Something Went Wrong!"
+                        'message' => $response
                     ], 500);
                 }
             }

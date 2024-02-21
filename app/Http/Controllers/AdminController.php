@@ -3,15 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Admin;
-use App\Models\Product;
-use App\Models\User;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cookie;
-use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Validator;
 use App\Repository\IAdminRepo;
+use Illuminate\Routing\Controller;
 
 class AdminController extends Controller
 {
@@ -24,214 +19,220 @@ class AdminController extends Controller
     //Stats for admin dashboard : admin, user, sales counts
     public function fetchStats()
     {
-        return $this->adminRepo->FetchStats();
+        try {
+            $stats = $this->adminRepo->FetchStats();
+            if ($stats) {
+                return response([
+                    'admins_count' => $stats[0],
+                    'users_count' => $stats[1],
+                    'orders_count' => $stats[2],
+                    'status' => 200
+                ], 200);
+            } else {
+                return response(['Error Fetching stats'], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
     }
     public function fetchAdmins()
     {
-        return $this->adminRepo->GetAllAdmins();
-    }
-
-    public function AdminSignup(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string',
-            'last_name' => 'required|string',
-            'email' => 'required|email',
-            'mobile_no' => 'required|string',
-            'roles' => 'required|json',
-            'password' => 'required|string|min:8',
-            'is_active' => 'required|boolean'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        } else {
-
-            $response = $this->adminRepo->AddAdmin($request);
-            return $response;
+        try {
+            $admins = $this->adminRepo->GetAllAdmins();
+            if ($admins) {
+                return response([
+                    'admins' => $admins,
+                    'status' => 200
+                ], 200);
+            } else {
+                return response(['Error Fetching Admins'], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
 
-    public function AdminLogin(Request $request)
+    public function adminSignup(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'mobile_no' => 'required|string',
-            'password' => 'required|string',
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        } else {
-            if (!Auth::attempt($request->only('mobile_no', 'password'))) {
-                return response([
-                    'message' => ['These credentials do not match our records.']
-                ], Response::HTTP_UNAUTHORIZED);
+        try {
+            $validator = Validator::make($request->all(), [
+                'first_name' => 'required|string',
+                'last_name' => 'required|string',
+                'email' => 'required|email',
+                'mobile_no' => 'required|string',
+                'roles' => 'required|json',
+                'password' => 'required|string|min:8',
+                'is_active' => 'required|boolean'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 422);
+            } else {
+
+                $response = $this->adminRepo->AddAdmin($request);
+                if ($response) {
+                    return response([
+                        'message' => "admin created",
+                        'status' => 201
+                    ], 201);
+                } else {
+                    return response(['Error creating Admin'], 404);
+                }
             }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
 
+    public function adminLogin(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'mobile_no' => 'required|string',
+                'password' => 'required|string',
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 422);
+            } else {
 
-            $token = $request->user()->createToken('token')->plainTextToken;
-            $cookie = cookie('jwt', $token, 60 * 24);
-            return response([
-                'message' => "Login success",
-                'admin' => Auth::user(),
-                'token' => $token
-            ], 200)->withCookie($cookie);
+                $response = $this->adminRepo->AdminLogin($request);
+                if ($response) {
+                    return response([
+                        'message' => "Login success",
+                        'admin' => $response[0],
+                        'token' => $response[1],
+                        'status' => 200
+                    ], 200);
+                    //], 200)->withCookie($response[2]);
+                } else {
+                    return response([
+                        'message' => ['These credentials do not match our records.']
+                    ], Response::HTTP_UNAUTHORIZED);
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
 
     public function updateRoles(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'id' => 'required|integer',
-            'roles' => 'required|json',
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        } else {
-
-            $admin = Admin::find($request->input('id'));
-            if (!$admin) {
-                return response()->json(['error' => 'Admin not found'], 404);
+        try {
+            $validator = Validator::make($request->all(), [
+                'id' => 'required|exists:admins,id',
+                'roles' => 'required|json',
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 422);
             } else {
-                // Update the string attribute
-                $admin->roles = $request->input('roles');
-                $admin->save();
+                $response = $this->adminRepo->UpdateRoles($request);
+                if ($response) {
+                    return response([
+                        'message' => "updated success",
+                    ], 200);
+                } else {
+                    return response()->json(['error' => 'Admin not found'], 404);
+                }
             }
-
-            return response([
-                'message' => "updated success",
-            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
 
     public function updateDetails(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string',
-            'last_name' => 'required|string',
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'id' => 'required|exists:admins,id',
+                'first_name' => 'required|string',
+                'last_name' => 'required|string',
+            ]);
 
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        } else {
-
-            $response = $this->adminRepo->UpdateDetails($request);
-            return $response;
-        }
-    }
-    public function Admin()
-    {
-        return Auth::user();
-    }
-
-    public function AdminLogout()
-    {
-        $cookie = Cookie::forget('jwt');
-        return response([
-            'message' => "logged out"
-        ])->withCookie($cookie);
-    }
-
-
-
-
-    public function fetchUsers()
-    {
-        $users = User::all();
-        return response(["users" => $users], 200);
-    }
-
-    public function ChangeUserStatus(Request $request)
-    {
-        $id = (int) ($request->input('id'));
-        $isActive = $request->input('isActive');
-
-        $user = User::find($id);
-
-        if ($user) {
-            if ($isActive) {
-                $user->is_active = true;
-                $user->save();
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 422);
             } else {
-                $user->is_active = false;
-                $user->save();
-            }
-            //$user->is_active = !$user->is_active;
-            $users = User::all();
 
-            return response()->json(['message' => 'Status updated successfully', "users" => $users], 200);
-        } else {
-            return response()->json(['message' => 'User not found'], 404);
+                $response = $this->adminRepo->UpdateDetails($request);
+                if ($response) {
+                    return response([
+                        'message' => "updated success",
+                    ], 200);
+                } else {
+                    return response()->json(['error' => 'Admin not found'], 404);
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
-
-    public function ChangeAdminStatus(Request $request)
+    public function admin()
     {
-        $id = (int) ($request->input('id'));
-        $isActive = $request->input('isActive');
-
-        $admin = Admin::find($id);
-
-        if ($admin) {
-            if ($isActive) {
-                $admin->is_active = true;
-                $admin->save();
+        try {
+            $admin = $this->adminRepo->GetAdmin();
+            //$admin = Auth::user();
+            if ($admin) {
+                return (response()->json(['admin' => $admin], 200));
             } else {
-                $admin->is_active = false;
-                $admin->save();
+                return (response()->json(['message' => 'admin not found', 'response' => $admin], 404));
             }
-            //$user->is_active = !$user->is_active;
-            $admins = Admin::all();
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
 
-            return response()->json(['message' => 'Status updated successfully', "admins" => $admins], 200);
-        } else {
-            return response()->json(['message' => 'User not found'], 404);
+    public function adminLogout()
+    {
+        try {
+            $admin = $this->adminRepo->GetAdmin();
+            //$admin = Auth::guard('admins')->user();
+            //$cookie = Cookie::forget('jwt');
+            //Auth::logout();
+            return response([
+                'message' => "logged out",
+                'status' => 200
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
+
+    public function changeAdminStatus(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'id' => 'required|exists:admins,id',
+                'isActive' => 'required|boolean',
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 422);
+            } else {
+                $response = $this->adminRepo->ChangeAdminStatus($request);
+                if ($response) {
+                    return response()->json(['message' => 'Status updated', "admins" => $response], 200);
+                } else {
+                    return response()->json(['message' => 'User not found'], 404);
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
 
 
-    public function DeleteAdmin($id)
-    {
-        $admin = Admin::where('id', $id)->first();
-        if (!$admin) {
-            return response()->json(['error' => 'Admin not found'], 404);
-        } else {
-
-            $admin->delete();
-        }
-
-        return response([
-            'message' => "Admin deleted",
-        ], 200);
-    }
-
-
-    public function fetchProducts()
-    {
-        $products = Product::all();
-        return response()->json([
-            'products' => $products
-        ], 200);
-    }
-
-
-
-    public function updateStock($id, $stock)
+    public function deleteAdmin($id)
     {
         try {
 
-            $product = Product::find($id);
-
-            if (!$product) {
-                return response()->json(['message' => 'Product not found'], 404);
+            $response = $this->adminRepo->DeleteAdmin($id);
+            if ($response) {
+                return response([
+                    'message' => "Admin deleted",
+                ], 200);
+            } else {
+                return response()->json(['error' => 'Admin not found'], 404);
             }
-
-            $product->stock = $stock;
-            $product->save();
-
-            return response()->json(['message' => 'Stock updated successfully', 'data' => $product], 200);
         } catch (\Exception $e) {
-
-            return response()->json(['message' => 'Failed to update stock', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
 }

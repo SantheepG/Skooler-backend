@@ -17,4 +17,5 @@ interface IProductRepo
     public function AddSubCategory($validatedData);
     public function FetchCategories();
     public function FetchSearchResults(Request $request);
+    public function StockUpdate($id, $stock);
 }

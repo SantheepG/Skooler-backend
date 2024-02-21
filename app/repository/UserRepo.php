@@ -10,9 +10,33 @@ use App\Models\CartItem;
 use App\Models\Notification;
 use App\Models\Review;
 use App\Models\Order;
+use App\Models\Product;
 
 class UserRepo implements IUserRepo
 {
+    public function GetUsers()
+    {
+        return User::all();
+    }
+    public function ChangeUserStatus(Request $request)
+    {
+        $id = (int) ($request->input('id'));
+        $isActive = $request->input('isActive');
+
+        $user = User::find($id);
+
+        if ($user) {
+            if ($isActive) {
+                $user->is_active = true;
+                $user->save();
+            } else {
+                $user->is_active = false;
+                $user->save();
+            }
+            //$user->is_active = !$user->is_active;
+            return User::all();
+        }
+    }
     public function UpdateAddress(Request $request)
     {
         $user = User::find($request->input('id'));
@@ -125,6 +149,10 @@ class UserRepo implements IUserRepo
     public function FetchCart($id)
     {
         $cartItems = CartItem::where('user_id', $id)->get();
+        foreach ($cartItems as &$item) {
+            $product = Product::find($item->product_id);
+            $item->stock = $product->stock;
+        }
         $subTotal = CartItem::where('user_id', $id)
             ->select(CartItem::raw('SUM(totalPrice) as total'))
             ->first()
@@ -134,7 +162,7 @@ class UserRepo implements IUserRepo
     public function GetNotifications($id)
     {
         $alerts = Notification::where('user_id', $id)->get();
-        $complaintAlerts = $alerts->filter(function ($alert) {
+        /*$complaintAlerts = $alerts->filter(function ($alert) {
             return $alert->type === 'complaint';
         })->values()->all();
 
@@ -145,8 +173,8 @@ class UserRepo implements IUserRepo
         $orderAlerts = $alerts->filter(function ($alert) {
             return $alert->type === 'order';
         })->values()->all();
-
-        return [$complaintAlerts, $reviewAlerts, $orderAlerts];
+*/
+        return $alerts;
     }
     public function UpdateAlertStatus($id)
     {
@@ -245,6 +273,19 @@ class UserRepo implements IUserRepo
             return true;
         } else {
             return false;
+        }
+    }
+    public function FetchUserContact($id)
+    {
+        $user = User::find($id);
+        if ($user) {
+            return [
+                $user->id,
+                $user->first_name,
+                $user->last_name,
+                $user->email,
+                $user->mobile_no
+            ];
         }
     }
 }

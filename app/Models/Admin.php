@@ -11,8 +11,50 @@ use Illuminate\Notifications\Notifiable;
 class Admin extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
-    protected $table = 'admins';
     protected $primaryKey = 'id';
+    public $incrementing = false;
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($admin) {
+            $admin->id = static::getNewEntryId();
+        });
+    }
+
+    public static function getLastAdminEntryId()
+    {
+        $lastEntry = self::latest()->first();
+
+        if ($lastEntry) {
+            return $lastEntry->id;
+        }
+
+        return null;
+    }
+    public static function getLastUserEntryId()
+    {
+        $lastEntry = User::latest()->first();
+
+        if ($lastEntry) {
+            return $lastEntry->id;
+        }
+
+        return null;
+    }
+    public static function getNewEntryId()
+    {
+        $lastAdminId = self::getLastAdminEntryId();
+        $lastUserId = self::getLastUserEntryId();
+        if ($lastAdminId > $lastUserId) {
+            return intval($lastAdminId + 1);
+        } else {
+            return intval($lastUserId + 1);
+        }
+    }
+    protected $guard = "admin";
+    protected $table = "admins";
     protected $fillable = [
         'first_name',
         'last_name',

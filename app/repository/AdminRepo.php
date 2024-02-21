@@ -6,6 +6,9 @@ use App\Models\Admin;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
+
 use Illuminate\Support\Facades\Hash;
 
 class AdminRepo implements IAdminRepo
@@ -16,19 +19,15 @@ class AdminRepo implements IAdminRepo
         $usersCount = User::count();
         $ordersCount = Order::count();
 
-        return response([
-            'admins_count' => $adminsCount,
-            'users_count' => $usersCount,
-            'orders_count' => $ordersCount,
-        ], 200);
+        return [
+            $adminsCount,
+            $usersCount,
+            $ordersCount,
+        ];
     }
     public function GetAllAdmins()
     {
-        $admins = Admin::all();
-
-        return response([
-            'admins' => $admins
-        ], 200);
+        return Admin::all();
     }
 
     public function AddAdmin(Request $request)
@@ -45,13 +44,77 @@ class AdminRepo implements IAdminRepo
             'is_active' => $request->input('is_active')
 
         ]);
-        return response([
-            'admins' => $admin,
-            'status' => 201
-        ], 201);
+        return $admin ? true : false;
     }
+    public function AdminLogin(Request $request)
+    {
+        if (Auth::guard('admins')->attempt($request->only('mobile_no', 'password'))) {
+            $admin = Auth::guard('admins')->user();
+            //Auth::login($admin);
+            $token = $admin->createToken('token', ['admins'])->plainTextToken;
+            //$cookie = cookie('jwt', $token, 60 * 24);
+            return [$admin, $token];
+        } else {
+            return false;
+        }
+    }
+    public function GetAdmin()
+    {
+        return Auth::user();
+    }
+    public function AdminLogout(Request $request)
+    {
+        $response = $request->user()->tokens()->where('id', $request->user()->currentAccessToken()->id)->delete();
 
+        $cookie = Cookie::forget('jwt');
+        $response  ? true : false;
+    }
+    public function ChangeAdminStatus(Request $request)
+    {
+        $id = (int) ($request->input('id'));
+        $isActive = $request->input('isActive');
+
+        $admin = Admin::find($id);
+
+        if ($admin) {
+            if ($isActive) {
+                $admin->is_active = true;
+                $admin->save();
+            } else {
+                $admin->is_active = false;
+                $admin->save();
+            }
+            //$user->is_active = !$user->is_active;
+            return Admin::all();
+        }
+    }
+    public function UpdateRoles(Request $request)
+    {
+        $admin = Admin::find((int)($request->input('id')));
+        if ($admin) {
+            // Update the string attribute
+            $admin->roles = $request->input('roles');
+            $admin->save();
+        }
+        return $admin ? true : false;
+    }
     public function UpdateDetails(Request $request)
     {
+        $admin = Admin::find((int)($request->input('id')));
+        if ($admin) {
+            // Update the string attribute
+            $admin->first_name = $request->input('first_name');
+            $admin->last_name = $request->input('last_name');
+            $admin->save();
+        }
+        return $admin ? true : false;
+    }
+    public function DeleteAdmin($id)
+    {
+        $admin = Admin::where('id', $id)->first();
+        if ($admin) {
+            $admin->delete();
+        }
+        return $admin ? true : false;
     }
 }
