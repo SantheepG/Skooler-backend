@@ -16,6 +16,22 @@ class ProductController extends Controller
         $this->productRepo = $productRepo;
     }
 
+    public function fetchFeturedProducts()
+    {
+        try {
+            $response = $this->productRepo->GetFeaturedProducts();
+            if ($response) {
+                return response()->json([
+                    'products' => $response,
+                    'status' => 200
+                ], 200);
+            } else {
+                return response()->json(['message' => 'not found'], 400);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
     public function fetchProducts()
     {
         try {

@@ -56,6 +56,38 @@ class ProductRepo implements IProductRepo
             return 0;
         }
     }
+
+    public function GetFeaturedProducts()
+    {
+        // Select three products with reviews and ratings
+        $featuredProducts = Product::join('reviews', 'products.id', '=', 'reviews.product_id')
+            ->select('products.*', 'reviews.comment', 'reviews.rating')
+            ->whereNotNull('reviews.comment')
+            ->whereNotNull('reviews.rating')
+            ->inRandomOrder()
+            ->limit(3)
+            ->get();
+
+        // Check if there are less than three products with reviews and ratings
+        if ($featuredProducts->count() < 3) {
+            // Select newly added products to fill the gap
+            $newProducts = Product::orderBy('created_at', 'DESC')
+                ->whereNotIn('product_id', $featuredProducts->pluck('product_id'))
+                ->limit(3 - $featuredProducts->count())
+                ->get();
+            // Merge the collections to get the final result
+            $featuredProducts = $featuredProducts->merge($newProducts);
+        }
+
+        foreach ($featuredProducts as $product) {
+            $ratings = Review::where('product_id', $product->id)->pluck('rating')->toArray();
+            $averageRating = (count($ratings) > 0) ? array_sum($ratings) / count($ratings) : 0;
+            // Adding the average rating to each product's object
+            $product->avg_rating = $averageRating;
+        }
+
+        return $featuredProducts;
+    }
     public function GetProduct($id)
     {
         $product = Product::where('id', $id)->first();

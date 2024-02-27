@@ -9,9 +9,11 @@ interface IEventRepo
     public function FetchEvents();
     public function AddEvent(Request $request);
     public function UpdateEvent(Request $request);
-    public function FetchEvent($id);
-    public function DeleteEvent($id);
+    public function FetchEvent($eventId);
+    public function DeleteEvent($eventId);
     public function BookTicket(Request $request, $validatedData);
-    public function FetchUserBookings($id);
-    public function RemainingSlots($id);
+    public function FetchUserBookings($userId);
+    public function RemainingSlots($eventId);
+    public function FetchAllBookings();
+    public function DeleteBooking($bookingId);
 }

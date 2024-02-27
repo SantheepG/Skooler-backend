@@ -9,6 +9,7 @@ interface IProductRepo
     public function FetchProducts();
     public function GetAvgRating($id);
     public function GetProduct($id);
+    public function GetFeaturedProducts();
     public function FetchRelatedProducts($id);
     public function AddProduct($validatedData);
     public function DeleteProduct($id);

@@ -6,7 +6,7 @@ use App\Models\Student;
 
 use App\Repository\IAuthRepo;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Routing\Controller;
 use Symfony\Component\HttpFoundation\Response;
@@ -62,14 +62,16 @@ class AuthController extends Controller
         } else {
 
             $response = $this->authRepo->login($request);
+
             if ($response) {
+                $cookie = cookie('jwt', $response[1], 60 * 24);
                 return response([
                     'message' => "Login success",
                     'user' => $response[0],
                     'token' => $response[1],
                     'status' => 200
-                ], 200);
-                //], 200)->withCookie($response[2]);
+                    //], 200);
+                ], 200)->withCookie($cookie);
             } else {
                 return response([
                     'message' => ['These credentials do not match our records.']

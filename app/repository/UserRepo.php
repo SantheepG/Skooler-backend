@@ -62,8 +62,8 @@ class UserRepo implements IUserRepo
     public function UpdateAvatar(Request $request)
     {
         $imageBinary = file_get_contents($request->file('avatar')->path());
-        $user_id = $request->input('user_id');
-        $profileAvatar = Avatar::find($user_id);
+        $user_id = (int)($request->input('user_id'));
+        $profileAvatar = Avatar::where('user_id', $user_id)->first();
         if ($profileAvatar) {
             $profileAvatar->avatar = $imageBinary;
             $profileAvatar->save();

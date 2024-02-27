@@ -22,18 +22,6 @@ use App\Http\Controllers\ComplaintController;
 |
 */
 
-//User 
-/**
- * Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
- */
-
-
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('admin', [AdminController::class, 'admin']);
-    Route::post('logout/admin', [AdminController::class, 'adminlogout']);
-});
 
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -90,6 +78,12 @@ Route::post('/checkid', [AuthController::class, 'CheckId']);
 Route::post('login/admin', [AdminController::class, 'adminlogin']);
 Route::post('adminsignup', [AdminController::class, 'adminSignup']);
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('admin', [AdminController::class, 'admin']);
+    Route::put('admin/reset/pwd', [AdminController::class, 'resetPassword']);
+    Route::post('logout/admin', [AdminController::class, 'adminlogout']);
+});
+
 Route::put('/admin/updatestatus', [AdminController::class, 'changeAdminStatus']);
 Route::delete('/admin/delete/{id}', [AdminController::class, 'deleteAdmin']);
 
@@ -97,6 +91,7 @@ Route::get('/school/fetch/stats', [AdminController::class, 'fetchStats']);
 
 Route::get('fetchadmins', [AdminController::class, 'fetchAdmins']);
 Route::put('admin/roles/update', [AdminController::class, 'updateRoles']);
+Route::put('admin/update/name', [AdminController::class, 'updateDetails']);
 
 //Product 
 Route::post('/avgrating', [ProductController::class, 'getAvgRating']);
@@ -111,7 +106,7 @@ Route::get('/products', [ProductController::class, 'fetchProducts']);
 Route::post('category/add', [ProductController::class, 'addCategory']);
 Route::post('subcategory/add', [ProductController::class, 'addSubCategory']);
 Route::put('/stock/{id}/{stock}', [ProductController::class, 'updateStock']);
-
+Route::get('/products/featured', [ProductController::class, 'fetchFeturedProducts']);
 //Search results
 Route::post('/search', [ProductController::class, 'search']);
 
@@ -124,14 +119,15 @@ Route::put('/events/{id}/edit', [EventController::class, 'update']);
 Route::delete('/events/{id}/delete', [EventController::class, 'deleteEvent']);
 
 Route::post('/user/book', [EventController::class, 'bookaTicket']);
-Route::post('/user/bookings', [EventController::class, 'fetchBookings']);
+Route::post('/user/bookings', [EventController::class, 'fetchUserBookings']);
+Route::get('fetch/bookings', [EventController::class, 'fetchAllBookings']);
+Route::delete('booking/delete/{id}', [EventController::class, 'deleteBooking']);
 
 //Complaints
 Route::get('/complaints', [ComplaintController::class, 'fetchComplaints']);
 Route::post('user/complaint/lodge', [ComplaintController::class, 'lodgeComplaint']);
 Route::put('admin/complaint/update', [ComplaintController::class, 'changeComplaintStatus']);
 Route::delete('complaint/delete/{id}', [ComplaintController::class, 'deleteComplaint']);
-
 //User 
 
 

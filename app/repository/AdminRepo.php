@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Models\Admin;
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,19 +17,24 @@ class AdminRepo implements IAdminRepo
     public function FetchStats()
     {
         $adminsCount = Admin::count();
+        $productCount = Product::count();
         $usersCount = User::count();
         $ordersCount = Order::count();
+        $totalSum = Order::sum('total_price');
 
         return [
             $adminsCount,
+            $productCount,
             $usersCount,
             $ordersCount,
+            $totalSum
         ];
     }
     public function GetAllAdmins()
     {
         return Admin::all();
     }
+
 
     public function AddAdmin(Request $request)
     {
@@ -48,10 +54,10 @@ class AdminRepo implements IAdminRepo
     }
     public function AdminLogin(Request $request)
     {
-        if (Auth::guard('admins')->attempt($request->only('mobile_no', 'password'))) {
-            $admin = Auth::guard('admins')->user();
+        if (Auth::guard('admin')->attempt($request->only('mobile_no', 'password'))) {
+            $admin = Auth::guard('admin')->user();
             //Auth::login($admin);
-            $token = $admin->createToken('token', ['admins'])->plainTextToken;
+            $token = $admin->createToken('token')->plainTextToken;
             //$cookie = cookie('jwt', $token, 60 * 24);
             return [$admin, $token];
         } else {
@@ -68,6 +74,19 @@ class AdminRepo implements IAdminRepo
 
         $cookie = Cookie::forget('jwt');
         $response  ? true : false;
+    }
+    public function ResetPassword(Request $request)
+    {
+        $user = Auth::user();
+        // Verify the current password
+        if (!Hash::check($request->input('current_password'), $user->password)) {
+            return false;
+        } else {
+            $user = Admin::find($request->input('id'));
+            $user->password = Hash::make($request->input('new_password'));
+            $user->save();
+            return true;
+        }
     }
     public function ChangeAdminStatus(Request $request)
     {

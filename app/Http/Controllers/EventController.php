@@ -220,13 +220,42 @@ class EventController extends Controller
         }
     }
 
-    public function fetchBookings($id)
+    public function fetchUserBookings($id)
     {
         try {
             $response = $this->eventRepo->FetchUserBookings($id);
             return response()->json(['booking' => $response], 200);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Request failed', 'error' => $e->getMessage()], 500);
+        }
+    }
+    public function fetchAllBookings()
+    {
+        try {
+            $response = $this->eventRepo->FetchAllBookings();
+            return response()->json(['bookings' => $response], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Request failed', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function deleteBooking($id)
+    {
+        try {
+            $response = $this->eventRepo->DeleteBooking($id);
+            if ($response) {
+                return response()->json([
+                    'status' => 200,
+                    "message" => "deleted"
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => 404,
+                    'message' => "Not Found!"
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
 }

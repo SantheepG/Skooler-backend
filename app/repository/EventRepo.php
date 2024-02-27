@@ -6,6 +6,7 @@ use App\Models\Event;
 use Illuminate\Http\Request;
 use App\Models\Booking;
 use App\Models\Notification;
+use App\Models\User;
 
 class EventRepo implements IEventRepo
 {
@@ -41,13 +42,13 @@ class EventRepo implements IEventRepo
         ]);
         return $event ? true : false;
     }
-    public function FetchEvent($id)
+    public function FetchEvent($eventId)
     {
-        return Event::find($id);
+        return Event::find($eventId);
     }
-    public function DeleteEvent($id)
+    public function DeleteEvent($eventId)
     {
-        $event = Event::where('id', $id)->first();
+        $event = Event::where('id', $eventId)->first();
         $event->delete();
         return $event ? true : false;
     }
@@ -78,13 +79,36 @@ class EventRepo implements IEventRepo
             return "Booked";
         };
     }
-    public function RemainingSlots($id)
+    public function RemainingSlots($eventId)
     {
-        $event = Event::find($id);
+        $event = Event::find($eventId);
         return $event->capacity - $event->reserved_slots;
     }
-    public function FetchUserBookings($id)
+    public function FetchUserBookings($userId)
     {
-        return Booking::where('user_id', $id)->get();
+        return Booking::where('user_id', $userId)->get();
+    }
+
+    public function FetchAllBookings()
+    {
+        $bookings = Booking::all();
+        foreach ($bookings as $booking) {
+            $user = User::find($booking->user_id);
+            if ($user) {
+                $name = $user->first_name  . " " . $user->last_name;
+                $email = $user->email;
+                $mobile_no = $user->mobile_no;
+                $booking->user_name = $name;
+                $booking->user_email = $email;
+                $booking->user_mobile_no = $mobile_no;
+            }
+        }
+        return $bookings;
+    }
+    public function DeleteBooking($bookingId)
+    {
+        $booking = Booking::find($bookingId);
+        $booking->delete();
+        return $booking ? true : false;
     }
 }

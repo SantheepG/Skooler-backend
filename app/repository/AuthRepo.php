@@ -35,7 +35,7 @@ class AuthRepo implements IAuthRepo
             $user = Auth::user();
             //Auth::login($user);
             $token = $request->user()->createToken('token')->plainTextToken;
-            //$cookie = cookie('jwt', $token, 60 * 24);
+
             return [$user, $token];
         } else {
             return false;

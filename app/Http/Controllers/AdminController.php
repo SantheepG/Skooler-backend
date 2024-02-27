@@ -24,8 +24,10 @@ class AdminController extends Controller
             if ($stats) {
                 return response([
                     'admins_count' => $stats[0],
-                    'users_count' => $stats[1],
-                    'orders_count' => $stats[2],
+                    'products_count' => $stats[1],
+                    'users_count' => $stats[2],
+                    'orders_count' => $stats[3],
+                    'total' => $stats[4],
                     'status' => 200
                 ], 200);
             } else {
@@ -165,6 +167,7 @@ class AdminController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
+
     public function admin()
     {
         try {
@@ -180,10 +183,10 @@ class AdminController extends Controller
         }
     }
 
-    public function adminLogout()
+    public function adminLogout(Request $request)
     {
         try {
-            $admin = $this->adminRepo->GetAdmin();
+            $admin = $this->adminRepo->AdminLogout($request);
             //$admin = Auth::guard('admins')->user();
             //$cookie = Cookie::forget('jwt');
             //Auth::logout();
@@ -193,6 +196,26 @@ class AdminController extends Controller
             ], 200);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:admins,id',
+            'current_password' => 'required',
+            'new_password' => 'required|min:8',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        } else {
+            $reponse = $this->adminRepo->ResetPassword($request);
+
+            if ($reponse) {
+                return response()->json(['error' => 'Current password is incorrect'], 401);
+            } else {
+                return response()->json(['message' => 'Password changed successfully'], 200);
+            }
         }
     }
 
