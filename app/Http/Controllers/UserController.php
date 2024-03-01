@@ -16,6 +16,33 @@ class UserController extends Controller
         $this->userRepo = $userRepo;
     }
 
+    public function updateProfilePic(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'id' => 'required|exists:users,id',
+                'avatar' => 'required',
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 422);
+            } else {
+                $response = $this->userRepo->UpdateProfilePic($request);
+                if ($response) {
+                    return response()->json([
+                        'message' => 'updated',
+                        'status' => 200
+                    ], 200);
+                } else {
+                    return response()->json([
+                        'message' => 'error',
+                        'status' => 406
+                    ], 406);
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
     public function updateAvatar(Request $request)
     {
         try {

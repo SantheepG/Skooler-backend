@@ -22,6 +22,7 @@ return new class extends Migration
             $table->decimal('discount', 10, 2)->nullable();
             $table->decimal('discounted_price', 10, 2)->nullable();
             $table->json('images')->nullable();
+            $table->string('thumbnail')->nullable();
 
             $table->unsignedBigInteger('category_id');
             $table->foreign('category_id')->references('id')->on('category');

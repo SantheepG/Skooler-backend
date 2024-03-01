@@ -36,7 +36,7 @@ Route::post('user/login', [AuthController::class, 'login']);
 Route::post('user/signup/validate', [AuthController::class, 'ValidationCheck']);
 Route::post('user/signup', [AuthController::class, 'signup']);
 
-Route::post('user/avatar/update', [UserController::class, 'updateAvatar']);
+Route::post('user/avatar/update', [UserController::class, 'updateProfilePic']);
 Route::get('user/avatar/get/{id}', [UserController::class, 'getAvatar']);
 Route::delete('user/delete/{id}', [AuthController::class, 'deleteUser']);
 Route::post('/cart/add', [UserController::class, 'addToCart']);
@@ -107,6 +107,13 @@ Route::post('category/add', [ProductController::class, 'addCategory']);
 Route::post('subcategory/add', [ProductController::class, 'addSubCategory']);
 Route::put('/stock/{id}/{stock}', [ProductController::class, 'updateStock']);
 Route::get('/products/featured', [ProductController::class, 'fetchFeturedProducts']);
+
+Route::post('product/imgs/add', [ProductController::class, 'addProductImgs']);
+Route::put('/product/img/delete', [ProductController::class, 'deleteProductImg']);
+
+Route::delete('/img/delete', [ProductController::class, 'deleteImg']);
+
+
 //Search results
 Route::post('/search', [ProductController::class, 'search']);
 

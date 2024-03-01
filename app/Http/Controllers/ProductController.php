@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use App\Repository\IProductRepo;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -14,6 +15,61 @@ class ProductController extends Controller
     public function __construct(IProductRepo $productRepo)
     {
         $this->productRepo = $productRepo;
+    }
+    public function addProductImgs(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'imgs' => 'required',
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 422);
+            } else {
+                //$validatedData = $validator->validated();
+                $response = $this->productRepo->AddProductImgs($request);
+                if ($response) {
+                    return response()->json([
+                        'paths' => $response,
+                        'message' => 'success',
+                        'status' => 201
+                    ], 201);
+                } else {
+                    return response()->json([
+                        "message" => "Error addming imgs",
+                    ], 500);
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
+    public function deleteProductImg(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'id' => 'required|exists:products,id',
+                'path' => 'string|required',
+
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 422);
+            } else {
+                //$validatedData = $validator->validated();
+                $response = $this->productRepo->DeleteProductImg($request);
+                if ($response) {
+                    return response()->json([
+                        'message' => "deleted",
+                        'images' => $response,
+                    ], 200);
+                } else {
+                    return response()->json([
+                        "message" => "Error deleting img",
+                    ], 500);
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
     }
 
     public function fetchFeturedProducts()
@@ -141,7 +197,8 @@ class ProductController extends Controller
                 'price' => 'required|numeric',
                 'discount' => 'numeric|nullable',
                 'discounted_price' => 'numeric|nullable',
-                'images' => 'array|nullable',
+                'images' => 'json|nullable',
+                'thumbnail' => 'string|nullable',
                 'category_id' => 'required|exists:category,id',
                 'subcategory_id' => 'nullable|exists:subcategory,id',
             ]);
@@ -150,12 +207,14 @@ class ProductController extends Controller
             } else {
                 $validatedData = $validator->validated();
 
-                $response = $this->productRepo->AddProduct($validatedData);
+                $response = $this->productRepo->AddProduct($validatedData, $request);
                 if ($response) {
                     return response()->json([
                         'message' => 'added',
                         'status' => 201
                     ], 201);
+                } else {
+                    return $response;
                 }
             }
         } catch (\Exception $e) {
@@ -194,7 +253,7 @@ class ProductController extends Controller
                 'price' => 'required|numeric',
                 'discount' => 'numeric|nullable',
                 'discounted_price' => 'numeric|nullable',
-                'images' => 'array|nullable',
+                'images' => 'json|nullable',
                 'category_id' => 'required|exists:category,id',
                 'subcategory_id' => 'exists:subcategory,id',
             ]);

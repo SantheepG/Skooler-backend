@@ -25,4 +25,5 @@ interface IUserRepo
     public function DeleteReview($id);
     public function RateProduct(Request $request);
     public function FetchUserContact($id);
+    public function UpdateProfilePic(Request $request);
 }

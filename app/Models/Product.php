@@ -20,6 +20,7 @@ class Product extends Model
         'discount',
         'discounted_price',
         'images',
+        'thumbnail',
         'category_id',
         'subcategory_id'
     ];

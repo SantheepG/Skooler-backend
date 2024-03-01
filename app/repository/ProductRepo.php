@@ -6,9 +6,14 @@ use Illuminate\Http\Request;
 
 use App\Models\Product;
 use App\Models\Review;
+use App\Models\CartItem;
+use App\Models\Complaint;
 use App\Models\Category;
 use App\Models\Subcategory;
 use App\Models\Event;
+use Illuminate\Support\Facades\Storage;
+
+use function Laravel\Prompts\error;
 
 class ProductRepo implements IProductRepo
 {
@@ -96,7 +101,6 @@ class ProductRepo implements IProductRepo
         if ($product) {
             $ratings = Review::where('product_id', $product->id)->pluck('rating')->toArray();
             $averageRating = (count($ratings) > 0) ? array_sum($ratings) / count($ratings) : 0;
-            $product->avg_rating = $averageRating;
             return [$product, $reviews];
         } else {
             return false;
@@ -146,6 +150,18 @@ class ProductRepo implements IProductRepo
     {
         $product = Product::where('id', $id)->first();
         if ($product) {
+            $paths = json_decode($product->images);
+            foreach ($paths as $path) {
+                Storage::disk('s3')->delete($path);
+            }
+            // Delete related reviews
+            Review::where('product_id', $id)->delete();
+
+            // Delete related cart items
+            CartItem::where('product_id', $id)->delete();
+
+            // Delete related complaints
+            Complaint::where('product_id', $id)->delete();
             $product->delete();
             return true;
         } else {
@@ -202,5 +218,50 @@ class ProductRepo implements IProductRepo
             $product->save();
         }
         return $product ? true : false;
+    }
+
+    public function AddProductImgs(Request $request)
+    {
+        $paths = [];
+
+        foreach ($request->file('imgs') as $file) {
+            // 'public/products' - directory
+            $path = $file->store(
+                'public/products',
+                's3'
+            );
+
+            // visibility of the file - public
+            Storage::disk('s3')->setVisibility($path, 'public');
+
+            // Generating a public URL for the file
+            //$publicUrl = Storage::disk('s3')->url($path);
+
+            // Add the path to the array
+            $paths[] = $path;
+            //$publicUrls[] = $publicUrl;
+        }
+        return $paths;
+    }
+
+    public function DeleteProductImg(Request $request)
+    {
+        try {
+            $path = $request->input('path');
+            $product = Product::find($request->input('id'));
+            $images = json_decode($product->images, true);
+            $index = array_search($path, $images);
+            if (Storage::disk('s3')->has($path)) {
+                Storage::disk('s3')->delete($path);
+                unset($images[$index]);
+                $images = array_values($images);
+                $product->thumbnail = isset($images[0]) ? $images[0] : null;
+                $product->images = json_encode($images);
+                $product->save();
+                return $product->images;
+            }
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
     }
 }

@@ -11,6 +11,7 @@ use App\Models\Notification;
 use App\Models\Review;
 use App\Models\Order;
 use App\Models\Product;
+use Illuminate\Support\Facades\Storage;
 
 class UserRepo implements IUserRepo
 {
@@ -71,6 +72,25 @@ class UserRepo implements IUserRepo
         } else {
             $avatarUpdate = Avatar::create(["user_id" => $user_id, "avatar" => $imageBinary]);
             return true;
+        }
+    }
+    public function UpdateProfilePic(Request $request)
+    {
+        $user = User::find($request->input('id'));
+        if ($user->profile_pic) {
+            Storage::disk('s3')->delete($user->profile_pic);
+        }
+        $path = $request->file('avatar')->store(
+            'public/userpic',
+            's3'
+        );
+        Storage::disk('s3')->setVisibility($path, 'public');
+        if ($path) {
+            $user->profile_pic = $path;
+            $user->save();
+            return true;
+        } else {
+            return false;
         }
     }
     public function GetAvatar($id)
@@ -152,6 +172,7 @@ class UserRepo implements IUserRepo
         foreach ($cartItems as &$item) {
             $product = Product::find($item->product_id);
             $item->stock = $product->stock;
+            $item->profile_pic = $product->thumbnail;
         }
         $subTotal = CartItem::where('user_id', $id)
             ->select(CartItem::raw('SUM(totalPrice) as total'))

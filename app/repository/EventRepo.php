@@ -108,7 +108,16 @@ class EventRepo implements IEventRepo
     public function DeleteBooking($bookingId)
     {
         $booking = Booking::find($bookingId);
-        $booking->delete();
+        if ($booking) {
+            $tickets = $booking->tickets;
+            $event = Event::find($booking->event_id);
+            $reserved = $event->reserved_slots;
+            $new = $reserved - (int)($tickets);
+            $event->reserved_slots = $new;
+            $event->save();
+            $booking->delete();
+        }
+
         return $booking ? true : false;
     }
 }
