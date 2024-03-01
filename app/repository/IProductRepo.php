@@ -20,5 +20,6 @@ interface IProductRepo
     public function FetchSearchResults(Request $request);
     public function StockUpdate($id, $stock);
     public function AddProductImgs(Request $request);
+    public function UpdateProductImgs(Request $request);
     public function DeleteProductImg(Request $request);
 }

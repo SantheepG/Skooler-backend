@@ -49,7 +49,7 @@ class UserRepo implements IUserRepo
             return false;
         } else {
             $user->update($request->only('address'));
-            return true;
+            return $user;
         }
     }
 
@@ -62,7 +62,7 @@ class UserRepo implements IUserRepo
             return false;
         } else {
             $user->update($request->only('first_name', 'last_name'));
-            return true;
+            return $user;
         }
     }
     //Update user profile picture
@@ -80,7 +80,7 @@ class UserRepo implements IUserRepo
         if ($path) {
             $user->profile_pic = $path;
             $user->save();
-            return true;
+            return $user;
         } else {
             return false;
         }
@@ -166,8 +166,17 @@ class UserRepo implements IUserRepo
     }
     public function GetNotifications($id)
     {
-        $alerts = Notification::where('user_id', $id)->get();
-        return $alerts;
+        $unreadNotifications = Notification::where('user_id', $id)
+            ->where('is_read', false)
+            ->count();
+
+        if ($unreadNotifications > 0) {
+            $alerts = Notification::where('user_id', $id)->get();
+            return $alerts;
+        } else {
+            Notification::where('user_id', $id)->delete();
+            return [];
+        }
     }
     public function UpdateAlertStatus($id)
     {
@@ -242,7 +251,7 @@ class UserRepo implements IUserRepo
                 $notification->save();
             }
 
-            return true;
+            return $review;
         } else {
             $data = [
                 'product_id' => $request->product_id,
@@ -253,9 +262,9 @@ class UserRepo implements IUserRepo
                 'comment' => $request->comment,
             ];
 
-            Review::create($data);
+            $review = Review::create($data);
             $notification->save();
-            return true;
+            return $review;
         }
     }
     public function DeleteUser($id)

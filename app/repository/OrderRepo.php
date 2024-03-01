@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 use App\Models\Order;
 use App\Models\Booking;
+use App\Models\Complaint;
 use App\Models\Notification;
 
 class OrderRepo implements IOrderRepo
@@ -14,6 +15,14 @@ class OrderRepo implements IOrderRepo
     {
         $user_id = (int) $id;
         $orders = Order::where('user_id', $user_id)->get();
+        foreach ($orders as &$order) {
+            $complaint = Complaint::where('order_id', $order->id)->first();
+            if ($complaint != null) {
+                $order->complaint = true;
+            } else {
+                $order->complaint = false;
+            }
+        }
         $bookings = Booking::where('user_id', $user_id)->get();
         return [$orders, $bookings];
     }

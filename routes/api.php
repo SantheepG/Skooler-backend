@@ -109,6 +109,7 @@ Route::put('/stock/{id}/{stock}', [ProductController::class, 'updateStock']);
 Route::get('/products/featured', [ProductController::class, 'fetchFeturedProducts']);
 
 Route::post('product/imgs/add', [ProductController::class, 'addProductImgs']);
+Route::post('product/imgs/update', [ProductController::class, 'updateProductImgs']);
 Route::put('/product/img/delete', [ProductController::class, 'deleteProductImg']);
 
 Route::delete('/img/delete', [ProductController::class, 'deleteImg']);

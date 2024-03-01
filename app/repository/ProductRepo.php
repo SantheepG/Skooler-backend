@@ -244,7 +244,30 @@ class ProductRepo implements IProductRepo
         }
         return $paths;
     }
+    public function UpdateProductImgs(Request $request)
+    {
+        $paths = [];
+        $product = Product::find($request->input('id'));
 
+        foreach ($request->file('imgs') as $file) {
+            $path = $file->store(
+                'public/products',
+                's3'
+            );
+            Storage::disk('s3')->setVisibility($path, 'public');
+            $paths[] = $path;
+        }
+        if ($product) {
+            $decodedImages = json_decode($product->images, true);
+            $mergedImages = array_merge($decodedImages, $paths);
+            $product->images = ($mergedImages);
+            $product->save();
+
+            return $product->images;
+        } else {
+            return false;
+        }
+    }
     public function DeleteProductImg(Request $request)
     {
         try {

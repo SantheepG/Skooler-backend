@@ -30,6 +30,7 @@ class UserController extends Controller
                 if ($response) {
                     return response()->json([
                         'message' => 'updated',
+                        'user' => $response,
                         'status' => 200
                     ], 200);
                 } else {
@@ -43,42 +44,9 @@ class UserController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
-    public function updateAvatar(Request $request)
-    {
-        try {
-            $validator = Validator::make($request->all(), [
-                'user_id' => 'required|exists:users,id',
-                'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-            ]);
-            if ($validator->fails()) {
-                return response()->json(['error' => $validator->errors()], 422);
-            } else {
-                $response = $this->userRepo->UpdateAvatar($request);
-                if ($response) {
-                    return response()->json([
-                        'message' => 'updated',
-                        'status' => 200
-                    ], 200);
-                }
-            }
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
-        }
-    }
 
-    public function getAvatar($id)
-    {
-        try {
-            $response = $this->userRepo->GetAvatar($id);
-            if ($response) {
-                return response($response)->header('Content-Type', 'image/jpeg');
-            } else {
-                return response()->json(['message' => 'not found'], 400);
-            }
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
-        }
-    }
+
+
 
     public function addToCart(Request $request)
     {
@@ -191,7 +159,7 @@ class UserController extends Controller
             } else {
                 $response = $this->userRepo->RateProduct($request);
                 if ($response) {
-                    return response()->json(['message' => 'added'], 200);
+                    return response()->json(['message' => 'added', 'review' => $response], 200);
                 }
             }
         } catch (\Exception $e) {
@@ -233,7 +201,7 @@ class UserController extends Controller
             } else {
                 $response = $this->userRepo->UpdateName($request);
                 if ($response) {
-                    return response()->json(['message' => 'name updated'], 200);
+                    return response()->json(['message' => 'name updated', 'user' => $response], 200);
                 } else {
                     response()->json(['error' => 'User not found'], 404);
                 }
@@ -255,7 +223,7 @@ class UserController extends Controller
             } else {
                 $response = $this->userRepo->UpdateAddress($request);
                 if ($response) {
-                    return response()->json(['message' => 'address updated'], 200);
+                    return response()->json(['message' => 'address updated', 'user' => $response], 200);
                 } else {
                     response()->json(['error' => 'User not found'], 404);
                 }

@@ -43,6 +43,34 @@ class ProductController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
+    public function updateProductImgs(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'id' => 'required|exists:products,id',
+                'imgs' => 'required',
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 422);
+            } else {
+                //$validatedData = $validator->validated();
+                $response = $this->productRepo->UpdateProductImgs($request);
+                if ($response) {
+                    return response()->json([
+                        'paths' => $response,
+                        'message' => 'success',
+                        'status' => 201
+                    ], 201);
+                } else {
+                    return response()->json([
+                        "message" => "Error addming imgs",
+                    ], 500);
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
     public function deleteProductImg(Request $request)
     {
         try {
