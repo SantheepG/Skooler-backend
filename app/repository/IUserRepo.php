@@ -8,7 +8,6 @@ interface IUserRepo
 {
     public function GetUsers();
     public function ChangeUserStatus(Request $request);
-    public function UpdateAvatar(Request $request);
     public function AddToCart(Request $request);
     public function UpdateCartItem($id, $qty, $price);
     public function  DeleteFromCart($id);
@@ -16,7 +15,6 @@ interface IUserRepo
     public function GetNotifications($id);
     public function UpdateAlertStatus($id);
     public function DeleteUser($id);
-    public function GetAvatar($id);
     public function FetchCards($id);
     public function AddCard(Request $request);
     public function GetUserReviews($id);

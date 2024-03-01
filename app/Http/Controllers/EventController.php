@@ -47,6 +47,25 @@ class EventController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
+    public function fetchUpcomingEvents()
+    {
+        try {
+            $events = $this->eventRepo->FetchUpcomingEvents();
+            if ($events) {
+                return response()->json([
+                    'status' => 200,
+                    'events' => $events
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'No Events Found!'
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
     public function store(Request $request)
     {
         try {
@@ -143,7 +162,6 @@ class EventController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
-
 
     public function deleteEvent($id)
     {

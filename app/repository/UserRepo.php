@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use Illuminate\Http\Request;
-use App\Models\Avatar;
 use App\Models\User;
 use App\Models\CardInfo;
 use App\Models\CartItem;
@@ -15,10 +14,12 @@ use Illuminate\Support\Facades\Storage;
 
 class UserRepo implements IUserRepo
 {
+    //Fetch all users for admin side
     public function GetUsers()
     {
         return User::all();
     }
+    //User account status change
     public function ChangeUserStatus(Request $request)
     {
         $id = (int) ($request->input('id'));
@@ -38,6 +39,8 @@ class UserRepo implements IUserRepo
             return User::all();
         }
     }
+
+    //update user address
     public function UpdateAddress(Request $request)
     {
         $user = User::find($request->input('id'));
@@ -49,6 +52,8 @@ class UserRepo implements IUserRepo
             return true;
         }
     }
+
+    //update user fname, surname
     public function UpdateName(Request $request)
     {
         $user = User::find($request->input('id'));
@@ -60,20 +65,7 @@ class UserRepo implements IUserRepo
             return true;
         }
     }
-    public function UpdateAvatar(Request $request)
-    {
-        $imageBinary = file_get_contents($request->file('avatar')->path());
-        $user_id = (int)($request->input('user_id'));
-        $profileAvatar = Avatar::where('user_id', $user_id)->first();
-        if ($profileAvatar) {
-            $profileAvatar->avatar = $imageBinary;
-            $profileAvatar->save();
-            return true;
-        } else {
-            $avatarUpdate = Avatar::create(["user_id" => $user_id, "avatar" => $imageBinary]);
-            return true;
-        }
-    }
+    //Update user profile picture
     public function UpdateProfilePic(Request $request)
     {
         $user = User::find($request->input('id'));
@@ -93,15 +85,7 @@ class UserRepo implements IUserRepo
             return false;
         }
     }
-    public function GetAvatar($id)
-    {
-        $user = Avatar::where('user_id', $id)->first();
-        if ($user) {
-            return ($user->avatar);
-        } else {
-            return false;
-        }
-    }
+    //Add product to cart
     public function AddToCart(Request $request)
     {
         $user_id = $request->input('user_id');
@@ -172,7 +156,7 @@ class UserRepo implements IUserRepo
         foreach ($cartItems as &$item) {
             $product = Product::find($item->product_id);
             $item->stock = $product->stock;
-            $item->profile_pic = $product->thumbnail;
+            $item->thumbnail = $product->thumbnail;
         }
         $subTotal = CartItem::where('user_id', $id)
             ->select(CartItem::raw('SUM(totalPrice) as total'))
@@ -183,18 +167,6 @@ class UserRepo implements IUserRepo
     public function GetNotifications($id)
     {
         $alerts = Notification::where('user_id', $id)->get();
-        /*$complaintAlerts = $alerts->filter(function ($alert) {
-            return $alert->type === 'complaint';
-        })->values()->all();
-
-        $reviewAlerts = $alerts->filter(function ($alert) {
-            return $alert->type === 'review';
-        })->values()->all();
-
-        $orderAlerts = $alerts->filter(function ($alert) {
-            return $alert->type === 'order';
-        })->values()->all();
-*/
         return $alerts;
     }
     public function UpdateAlertStatus($id)

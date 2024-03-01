@@ -101,6 +101,7 @@ class ProductRepo implements IProductRepo
         if ($product) {
             $ratings = Review::where('product_id', $product->id)->pluck('rating')->toArray();
             $averageRating = (count($ratings) > 0) ? array_sum($ratings) / count($ratings) : 0;
+            $product->avg_rating = $averageRating;
             return [$product, $reviews];
         } else {
             return false;

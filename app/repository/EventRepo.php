@@ -14,6 +14,15 @@ class EventRepo implements IEventRepo
     {
         return Event::all();
     }
+    public function FetchUpcomingEvents()
+    {
+        $currentDate = now();
+        $upcomingEvents = Event::where('event_datetime', '>', $currentDate)
+            ->orderBy('event_datetime', 'asc')
+            ->get();
+
+        return $upcomingEvents;
+    }
     public function AddEvent(Request $request)
     {
         $event = Event::create([

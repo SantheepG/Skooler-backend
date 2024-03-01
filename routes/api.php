@@ -119,6 +119,7 @@ Route::post('/search', [ProductController::class, 'search']);
 
 //Event
 Route::get('/events/fetch', [EventController::class, 'fetchEvents']);
+Route::get('/upcoming/events/fetch', [EventController::class, 'fetchUpcomingEvents']);
 Route::get('/event/get/{id}', [EventController::class, 'show']);
 Route::put('/event/update', [EventController::class, 'UpdateEvent']);
 Route::post('/event/add', [EventController::class, 'store']);

@@ -41,6 +41,7 @@ class AuthRepo implements IAuthRepo
             return false;
         }
     }
+    //Fetching user using jwt token
     public function GetUser()
     {
         if (Auth::check()) {
