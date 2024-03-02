@@ -12,7 +12,12 @@ class EventRepo implements IEventRepo
 {
     public function FetchEvents()
     {
-        return Event::all();
+        $currentDate = now();
+        $events =  Event::all();
+        $upcomingEvents = Event::where('event_datetime', '>', $currentDate)
+            ->orderBy('event_datetime', 'asc')
+            ->get();
+        return [$events, $upcomingEvents];
     }
     public function FetchUpcomingEvents()
     {

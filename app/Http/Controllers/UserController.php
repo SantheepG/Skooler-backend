@@ -44,10 +44,6 @@ class UserController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
-
-
-
-
     public function addToCart(Request $request)
     {
         try {
@@ -115,7 +111,6 @@ class UserController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
-
     public function fetchNotifications($id)
     {
         try {
@@ -185,8 +180,6 @@ class UserController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
-
-
     public function updateName(Request $request)
     {
         try {

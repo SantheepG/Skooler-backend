@@ -27,7 +27,8 @@ class AdminController extends Controller
                     'products_count' => $stats[1],
                     'users_count' => $stats[2],
                     'orders_count' => $stats[3],
-                    'total' => $stats[4],
+                    'upcoming' => $stats[4],
+                    'total' => $stats[5],
                     'status' => 200
                 ], 200);
             } else {

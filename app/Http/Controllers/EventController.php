@@ -35,7 +35,8 @@ class EventController extends Controller
             if ($events) {
                 return response()->json([
                     'status' => 200,
-                    'events' => $events
+                    'events' => $events[0],
+                    'upcoming' => $events[1]
                 ], 200);
             } else {
                 return response()->json([

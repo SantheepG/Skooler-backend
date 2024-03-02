@@ -6,6 +6,7 @@ use App\Models\Admin;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
+use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
@@ -16,18 +17,23 @@ class AdminRepo implements IAdminRepo
 {
     public function FetchStats()
     {
+        $currentDate = now();
         $adminsCount = Admin::count();
         $productCount = Product::count();
         $usersCount = User::count();
         $ordersCount = Order::count();
         $totalSum = Order::sum('total_price');
-
+        $upcomingEvents = Event::where('event_datetime', '>', $currentDate)
+            ->orderBy('event_datetime', 'asc')
+            ->get();
         return [
             $adminsCount,
             $productCount,
             $usersCount,
             $ordersCount,
-            $totalSum
+            $upcomingEvents,
+            $totalSum,
+
         ];
     }
     public function GetAllAdmins()

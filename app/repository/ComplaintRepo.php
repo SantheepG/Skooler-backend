@@ -19,25 +19,33 @@ class ComplaintRepo implements IComplaintRepo
     }
     public function LodgeComplaint($validatedData)
     {
+        $existingComplaint = Complaint::where('product_id', $validatedData['product_id'])
+            ->where('user_id', $validatedData['user_id'])
+            ->where('order_id', $validatedData['order_id'])
+            ->first();
 
-        $complaint = Complaint::create($validatedData);
-        if ($complaint) {
-            $name = 'Your complaint has been recorded';
-            $info = 'We will get back to you shortly';
-            $type = 'complaint';
-            $is_read = false;
-            $user_id = $validatedData['user_id'];
+        if ($existingComplaint) {
+            return "exists";
+        } else {
+            $complaint = Complaint::create($validatedData);
+            if ($complaint) {
+                $name = 'Your complaint has been recorded';
+                $info = 'We will get back to you shortly';
+                $type = 'complaint';
+                $is_read = false;
+                $user_id = $validatedData['user_id'];
 
-            $notification = new Notification();
+                $notification = new Notification();
 
-            $notification->name = $name;
-            $notification->info = $info;
-            $notification->type = $type;
-            $notification->is_read = $is_read;
-            $notification->user_id = $user_id;
-            $notification->save();
+                $notification->name = $name;
+                $notification->info = $info;
+                $notification->type = $type;
+                $notification->is_read = $is_read;
+                $notification->user_id = $user_id;
+                $notification->save();
+            }
+            return $complaint ? true : false;
         }
-        return $complaint ? true : false;
     }
     public function UpdateComplaint($validatedData)
     {

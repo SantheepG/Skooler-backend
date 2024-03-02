@@ -45,10 +45,12 @@ class ComplaintController extends Controller
             } else {
                 $validatedData = $validator->validated();
                 $response = $this->complaintRepo->LodgeComplaint($validatedData);
-                if ($response) {
-                    return response()->json(['message' => 'Complaint lodged'], 201);
+                if ($response === true) {
+                    return response()->json(['message' => 'Complaint lodged', 'status' => 201], 201);
+                } else if ($response === "exists") {
+                    return response()->json(['message' => 'already exists', 'status' => 422], 422);
                 } else {
-                    return response()->json(['message' => 'something went wrong'], 500);
+                    return response()->json(['message' => 'something went wrong', 'status' => 500], 500);
                 }
             }
         } catch (\Exception $e) {
