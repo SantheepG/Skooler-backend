@@ -11,6 +11,7 @@ use App\Models\Review;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Crypt;
 
 class UserRepo implements IUserRepo
 {
@@ -186,13 +187,14 @@ class UserRepo implements IUserRepo
     public function AddCard(Request $request)
     {
         $existingCard = CardInfo::where('user_id', (int)$request->input('user_id'))->first();
+        $encryptedCardDetails = Crypt::encrypt($request->input('card_details'));
         if ($existingCard) {
-            $existingCard->update(['card_details' => $request->input('card_details')]);
+            $existingCard->update(['card_details' => $encryptedCardDetails]);
             return ["updated", $existingCard];
         } else {
             $cardInfo = CardInfo::create([
                 'user_id' => (int)$request->input('user_id'),
-                'card_details' => $request->input('card_details'),
+                'card_details' => $encryptedCardDetails,
             ]);
             return ['details added', $cardInfo];
         }
@@ -200,9 +202,11 @@ class UserRepo implements IUserRepo
     public function FetchCards($id)
     {
         $cards = CardInfo::where("user_id", $id)->first();
-        $card_details = $cards->card_details;
-        if ($card_details) {
-            return $card_details;
+
+        if ($cards) {
+            $decryptedCardDetails = $cards->card_details ? Crypt::decrypt($cards->card_details) : null;
+
+            return $decryptedCardDetails;
         } else {
             return false;
         }

@@ -54,7 +54,6 @@ class AdminController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
-
     public function adminSignup(Request $request)
     {
         try {
@@ -86,7 +85,6 @@ class AdminController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
-
     public function adminLogin(Request $request)
     {
         try {
@@ -117,7 +115,6 @@ class AdminController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
-
     public function updateRoles(Request $request)
     {
         try {
@@ -141,7 +138,6 @@ class AdminController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
-
     public function updateDetails(Request $request)
     {
         try {
@@ -168,7 +164,6 @@ class AdminController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
-
     public function admin()
     {
         try {
@@ -183,7 +178,6 @@ class AdminController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
-
     public function adminLogout(Request $request)
     {
         try {
@@ -219,7 +213,6 @@ class AdminController extends Controller
             }
         }
     }
-
     public function changeAdminStatus(Request $request)
     {
         try {
@@ -241,8 +234,6 @@ class AdminController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
-
-
     public function deleteAdmin($id)
     {
         try {

@@ -126,8 +126,10 @@ class ProductRepo implements IProductRepo
 
                 $relatedProducts = $relatedProducts->merge($additionalProducts);
             }
+
+
             foreach ($relatedProducts as $relatedProduct) { // Change variable name to $relatedProduct
-                $ratings = Review::where('product_id', $relatedProduct->products_id)->pluck('rating')->toArray();
+                $ratings = Review::where('product_id', $relatedProduct->id)->pluck('rating')->toArray();
                 $averageRating = (count($ratings) > 0) ? array_sum($ratings) / count($ratings) : 0;
 
                 // Adding the average rating to each product's object
@@ -220,7 +222,6 @@ class ProductRepo implements IProductRepo
         }
         return $product ? true : false;
     }
-
     public function AddProductImgs(Request $request)
     {
         $paths = [];
