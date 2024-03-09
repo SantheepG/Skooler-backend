@@ -44,6 +44,7 @@ class OrderController extends Controller
                 'products' => 'required|json',
                 'total_price' => 'required|string',
                 'order_type' => 'required|string',
+                'bank_slip' => 'nullable|string',
                 'payment_method' => 'required|string',
                 'order_status' => 'required|string',
                 'dispatch_datetime' => "string",
@@ -56,6 +57,35 @@ class OrderController extends Controller
                 if ($response) {
                     return response()->json([
                         'message' => 'Order placed',
+                        'status' => 201
+                    ], 201);
+                } else {
+                    return response()->json([
+                        'message' => $response,
+                        'status' => 500
+                    ], 500);
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
+    //Upload bank slips
+    public function  uploadBankSlip(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'id' => 'nullable|exists:sales_history,id',
+                'bankSlip' => 'required',
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 422);
+            } else {
+                $response = $this->orderRepo->UploadBankSlip($request);
+                if ($response) {
+                    return response()->json([
+                        'message' => 'Slip uploaded',
+                        'path' => $response,
                         'status' => 201
                     ], 201);
                 } else {
@@ -114,7 +144,6 @@ class OrderController extends Controller
             return response()->json(['error' => $e], 500);
         }
     }
-
 
     public function deleteOrder($id)
     {

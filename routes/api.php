@@ -36,6 +36,8 @@ Route::post('user/login', [AuthController::class, 'login']);
 Route::post('user/signup/validate', [AuthController::class, 'ValidationCheck']);
 Route::post('user/signup', [AuthController::class, 'signup']);
 
+Route::delete('user/delete/{id}', [AuthController::class, 'deleteUser']);
+
 Route::post('user/avatar/update', [UserController::class, 'updateProfilePic']);
 Route::get('user/avatar/get/{id}', [UserController::class, 'getAvatar']);
 Route::delete('user/delete/{id}', [AuthController::class, 'deleteUser']);
@@ -53,6 +55,7 @@ Route::post('user/complaint/lodge', [ComplaintController::class, 'lodgeComplaint
 Route::get('/user/notifications/fetch/{id}', [UserController::class, 'fetchNotifications']);
 Route::get('/user/notifications/change/{id}', [UserController::class, 'updateAlertStatus']);
 
+Route::post('/user/placeorder/slip/upload', [OrderController::class, 'uploadBankSlip']);
 Route::post('/user/placeorder', [OrderController::class, 'PlaceOrder']);
 Route::post('/user/orders', [OrderController::class, 'getOrders']);
 Route::get('user/reviews/{id}', [UserController::class, 'getReviews']);
@@ -69,6 +72,7 @@ Route::get('user/complaint/contact/{id}', [UserController::class, 'fetchUserCont
 
 Route::get('/cart/stockcheck/{id}/{qty}', [UserController::class, 'StockCheck']);
 Route::get('/cart/fetchtotal/{id}', [UserController::class, 'fetchSubtotal']);
+
 
 //Student
 Route::post('add', [AuthController::class, 'AddStudent']);

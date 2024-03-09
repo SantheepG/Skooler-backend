@@ -271,16 +271,7 @@ class UserRepo implements IUserRepo
             return $review;
         }
     }
-    public function DeleteUser($id)
-    {
-        $user = User::findOrFail($id);
-        if ($user) {
-            $user->delete();
-            return true;
-        } else {
-            return false;
-        }
-    }
+
     public function FetchUserContact($id)
     {
         $user = User::find($id);

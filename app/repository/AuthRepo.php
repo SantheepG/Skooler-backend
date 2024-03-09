@@ -4,10 +4,16 @@ namespace App\Repository;
 
 use App\Models\User;
 use App\Models\Student;
+use App\Models\Review;
+use App\Models\CardInfo;
+use App\Models\Complaint;
+use App\Models\CartItem;
+use App\Models\Booking;
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cookie;
 
 class AuthRepo implements IAuthRepo
@@ -90,5 +96,35 @@ class AuthRepo implements IAuthRepo
     }
 
     //delete user
+    public function DeleteUser($id)
+    {
 
+        $user = User::find($id);
+        if ($user) {
+            $path = $user->profile_pic;
+            if ($path) {
+                Storage::disk('s3')->delete($path);
+            }
+            Review::where('user_id', $user->id)->delete();
+
+            // Delete related cart items
+            CartItem::where('user_id', $user->id)->delete();
+
+            // Delete related complaints
+            Complaint::where('user_id', $user->id)->delete();
+
+            // Delete related card infos
+            CardInfo::where('user_id', $user->id)->delete();
+
+            // Delete related bookings
+            Booking::where('user_id', $user->id)->delete();
+
+            // Delete related orders
+            Order::where('user_id', $user->id)->delete();
+            $user->delete();
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

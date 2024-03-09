@@ -8,6 +8,7 @@ interface IOrderRepo
 {
     public function FetchUserOrders($id);
     public function PlaceOrder(Request $request);
+    public function UploadBankSlip(Request $request);
     public function FetchOrders();
     public function UpdateOrder(Request $request);
     public function DeleteOrder($id);

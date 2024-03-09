@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Validator;
 use App\Repository\IAdminRepo;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Cookie;
 
 class AdminController extends Controller
 {
@@ -97,14 +98,15 @@ class AdminController extends Controller
             } else {
 
                 $response = $this->adminRepo->AdminLogin($request);
+                $cookie = cookie('jwt', $response[1], 60 * 12, null, null, false, false);
                 if ($response) {
                     return response([
                         'message' => "Login success",
                         'admin' => $response[0],
                         'token' => $response[1],
                         'status' => 200
-                    ], 200);
-                    //], 200)->withCookie($response[2]);
+                        //], 200);
+                    ], 200)->withCookie($cookie);
                 } else {
                     return response([
                         'message' => ['These credentials do not match our records.']
@@ -183,7 +185,7 @@ class AdminController extends Controller
         try {
             $admin = $this->adminRepo->AdminLogout($request);
             //$admin = Auth::guard('admins')->user();
-            //$cookie = Cookie::forget('jwt');
+            $cookie = Cookie::forget('jwt');
             //Auth::logout();
             return response([
                 'message' => "logged out",

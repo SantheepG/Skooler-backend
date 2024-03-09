@@ -79,6 +79,7 @@ class AuthController extends Controller
             }
         }
     }
+
     //fetching user data
     public function user()
     {
@@ -90,7 +91,23 @@ class AuthController extends Controller
             return (response()->json(['message' => 'Unauthorized'], 401));
         }
     }
+    //delete user
+    public function deleteUser($id)
+    {
+        try {
+            $response = $this->authRepo->DeleteUser($id);
 
+            $cookie = Cookie::forget('jwt');
+            if ($response) {
+                return response([
+                    'message' => "Deleted",
+                    'status' => 200
+                ], 200);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
     //user logout
     public function logout(Request $request)
     {

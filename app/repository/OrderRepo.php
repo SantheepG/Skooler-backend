@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Storage;
 use App\Models\Order;
 use App\Models\Booking;
 use App\Models\Complaint;
@@ -33,6 +33,7 @@ class OrderRepo implements IOrderRepo
             'products' => $request->input('products'),
             'total_price' => $request->input('total_price'),
             'order_type' => $request->input('order_type'),
+            'bank_slip' => $request->input('bank_slip'),
             'payment_method' => $request->input('payment_method'),
             'order_status' => $request->input('order_status'),
             'dispatch_datetime' => $request->input('dispatch_datetime'),
@@ -57,6 +58,24 @@ class OrderRepo implements IOrderRepo
         }
 
         return $order ? true : false;
+    }
+    public function UploadBankSlip(Request $request)
+    {
+        $path = $request->file('bankSlip')->store(
+            'public/bankslips',
+            's3'
+        );
+        Storage::disk('s3')->setVisibility($path, 'public');
+
+        $order = Order::find($request->input('id'));
+        if ($order && $order->bank_slip) {
+            Storage::disk('s3')->delete($order->bank_slip);
+            $order->bank_slip = $path;
+            $order->save();
+            return $path;
+        } else {
+            return $path;
+        }
     }
     public function FetchOrders()
     {

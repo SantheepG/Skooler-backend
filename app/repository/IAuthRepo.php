@@ -12,4 +12,5 @@ interface IAuthRepo
     public function Logout(Request $request);
     public function ResetPassword(Request $request);
     public function GetUser();
+    public function DeleteUser($id);
 }
