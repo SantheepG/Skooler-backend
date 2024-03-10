@@ -13,7 +13,7 @@ class EventRepo implements IEventRepo
     public function FetchEvents()
     {
         $currentDate = now();
-        $events = Event::orderBy('event_datetime', 'desc')->get();
+        $events = Event::reorder('event_datetime', 'desc')->get();
         $upcomingEvents = Event::where('event_datetime', '>', $currentDate)
             ->orderBy('event_datetime', 'asc')
             ->get();
@@ -51,6 +51,7 @@ class EventRepo implements IEventRepo
             'event_info' => $request->event_info,
             'venue' => $request->venue,
             'payment' => $request->payment,
+            'capacity' => $request->capacity,
             'event_datetime' => $request->event_datetime,
             'payment_deadline' => $request->payment_deadline,
         ]);

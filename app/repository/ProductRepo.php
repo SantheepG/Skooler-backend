@@ -19,7 +19,7 @@ class ProductRepo implements IProductRepo
 {
     public function FetchProducts()
     {
-        $products = Product::all();
+        $products = Product::reorder('created_at', 'desc')->get();
         // Iterating through each product and calculate the average rating
         foreach ($products as $product) {
             $ratings = Review::where('product_id', $product->id)->pluck('rating')->toArray();

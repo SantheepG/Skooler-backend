@@ -10,7 +10,8 @@ class ComplaintRepo implements IComplaintRepo
 {
     public function FetchComplaints()
     {
-        return Complaint::all();
+        $complaints = Complaint::reorder('created_at', 'desc')->get();
+        return $complaints;
     }
     public function FetchUserComplaints($id)
     {

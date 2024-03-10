@@ -79,7 +79,8 @@ class OrderRepo implements IOrderRepo
     }
     public function FetchOrders()
     {
-        return Order::all();
+        $orders = Order::reorder('created_at', 'desc')->get();
+        return $orders;
     }
     public function UpdateOrder(Request $request)
     {

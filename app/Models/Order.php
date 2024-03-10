@@ -16,6 +16,7 @@ class Order extends Model
         'total_price',
         'order_type',
         'payment_method',
+        'bank_slip',
         'order_status',
         'dispatch_datetime',
         'dispatch_address',
