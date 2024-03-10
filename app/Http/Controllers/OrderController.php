@@ -47,8 +47,8 @@ class OrderController extends Controller
                 'bank_slip' => 'nullable|string',
                 'payment_method' => 'required|string',
                 'order_status' => 'required|string',
-                'dispatch_datetime' => "string",
-                'dispatch_address' => "string"
+                'dispatch_datetime' => "nullable",
+                'dispatch_address' => "nullable|string"
             ]);
             if ($validator->fails()) {
                 return response()->json(['error' => $validator->errors()], 422);
