@@ -12,7 +12,9 @@ interface IEventRepo
     public function UpdateEvent(Request $request);
     public function FetchEvent($eventId);
     public function DeleteEvent($eventId);
+    public function UploadBookingBankSlip(Request $request);
     public function BookTicket(Request $request, $validatedData);
+    public function UpdateBookingStatus(Request $request);
     public function FetchUserBookings($userId);
     public function RemainingSlots($eventId);
     public function FetchAllBookings();

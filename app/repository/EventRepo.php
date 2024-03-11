@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use Illuminate\Support\Facades\Storage;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use App\Models\Booking;
@@ -67,6 +68,24 @@ class EventRepo implements IEventRepo
         $event->delete();
         return $event ? true : false;
     }
+    public function UploadBookingBankSlip(Request $request)
+    {
+        $path = $request->file('bankSlip')->store(
+            'public/bankslips',
+            's3'
+        );
+        Storage::disk('s3')->setVisibility($path, 'public');
+
+        $booking = Booking::find($request->input('id'));
+        if ($booking && $booking->bank_slip) {
+            Storage::disk('s3')->delete($booking->bank_slip);
+            $booking->bank_slip = $path;
+            $booking->save();
+            return $path;
+        } else {
+            return $path;
+        }
+    }
     public function BookTicket(Request $request, $validatedData)
     {
         $booking = Booking::create($validatedData);
@@ -77,9 +96,9 @@ class EventRepo implements IEventRepo
         } else {
             $reserved_slots = $reserved_slots + (int)$validatedData['tickets'];
             $event->update(['reserved_slots' => $reserved_slots]);
-            $name = 'Ticket has been booked';
+            $name = 'Booking placed success';
             $info = 'You can download your e-reciept from bookings. Thank you';
-            $type = 'booking';
+            $type = 'order';
             $is_read = false;
             $user_id = $request->user_id;
 
@@ -93,6 +112,37 @@ class EventRepo implements IEventRepo
             $notification->save();
             return "Booked";
         };
+    }
+    public function UpdateBookingStatus(Request $request)
+    {
+        $notification = new Notification();
+        $notification->name = 'Update on your recent ticket purchase';
+        $notification->type = 'order';
+        $notification->is_read  = false;
+        $notification->user_id = $request->user_id;
+        $booking = Booking::find($request->booking_id);
+        if ($booking) {
+            if ($request->status === 'Verified') {
+                $booking->status = $request->status;
+                $booking->save();
+                $notification->info = 'Your recent ticket purchase has been approved.Now you can download your E-ticket from bookings';
+                $notification->save();
+                return true;
+            } else {
+                $booking->status = $request->status;
+                $booking->save();
+                $event = Event::find($booking->event_id);
+                $reserved = $event->reserved_slots;
+                $new = $reserved - (int)($booking->tickets);
+                $event->reserved_slots = $new;
+                $event->save();
+                $notification->info = 'Your recent ticket purchase has been declined. Please contact help centre';
+                $notification->save();
+                return true;
+            }
+        } else {
+            return false;
+        }
     }
     public function RemainingSlots($eventId)
     {

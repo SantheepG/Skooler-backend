@@ -203,7 +203,34 @@ class EventController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
-
+    public function  uploadBookingBankSlip(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'id' => 'nullable|exists:bookings,id',
+                'bankSlip' => 'required',
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 422);
+            } else {
+                $response = $this->eventRepo->UploadBookingBankSlip($request);
+                if ($response) {
+                    return response()->json([
+                        'message' => 'Slip uploaded',
+                        'path' => $response,
+                        'status' => 201
+                    ], 201);
+                } else {
+                    return response()->json([
+                        'message' => $response,
+                        'status' => 500
+                    ], 500);
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
     public function bookaTicket(Request $request)
     {
         try {
@@ -214,6 +241,8 @@ class EventController extends Controller
                 'tickets' => 'required|integer',
                 'paid' => 'required|numeric',
                 'payment_method' => 'required|string',
+                'bank_slip' => 'nullable|string',
+                'status' => 'required|string'
 
             ]);
             if ($validator->fails()) {
@@ -230,6 +259,37 @@ class EventController extends Controller
                 } else {
                     return response()->json([
                         'status' => 500,
+                        'message' => $response
+                    ], 500);
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
+    public function updateBookingStatus(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'booking_id' => 'required|exists:bookings,id',
+                'user_id' => 'required|exists:users,id',
+                'status' => 'required|string'
+
+            ]);
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 422,
+                    'errors' => $validator->messages()
+                ], 422);
+            } else {
+
+
+                $response = $this->eventRepo->UpdateBookingStatus($request);
+                if ($response) {
+                    return response()->json(['status' => 200, 'message' => 'updated'], 200);
+                } else {
+                    return response()->json([
+                        'status' => 406,
                         'message' => $response
                     ], 500);
                 }

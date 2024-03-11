@@ -131,7 +131,10 @@ Route::post('/event/add', [EventController::class, 'store']);
 Route::put('/events/{id}/edit', [EventController::class, 'update']);
 Route::delete('/events/{id}/delete', [EventController::class, 'deleteEvent']);
 
+Route::post('/user/event/booking/uploadslip', [EventController::class, 'uploadBookingBankSlip']);
 Route::post('/user/book', [EventController::class, 'bookaTicket']);
+Route::put('/user/booking/statusupdate', [EventController::class, 'updateBookingStatus']);
+
 Route::post('/user/bookings', [EventController::class, 'fetchUserBookings']);
 Route::get('fetch/bookings', [EventController::class, 'fetchAllBookings']);
 Route::delete('booking/delete/{id}', [EventController::class, 'deleteBooking']);

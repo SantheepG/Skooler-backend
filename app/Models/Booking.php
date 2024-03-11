@@ -17,6 +17,8 @@ class Booking extends Model
         'user_id',
         'tickets',
         'paid',
-        'payment_method'
+        'payment_method',
+        'bank_slip',
+        'status'
     ];
 }
