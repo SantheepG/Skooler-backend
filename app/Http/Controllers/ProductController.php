@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use App\Repository\IProductRepo;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Collection as Collection;
 
 class ProductController extends Controller
 {

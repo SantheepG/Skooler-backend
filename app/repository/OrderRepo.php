@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Order;
 use App\Models\Booking;
+use App\Models\CartItem;
 use App\Models\Complaint;
 use App\Models\Notification;
 
@@ -41,6 +42,7 @@ class OrderRepo implements IOrderRepo
             'reviewed' => false
         ]);
         if ($order) {
+            CartItem::where('user_id', $request->user_id)->delete();;
             $name = 'Your order has been placed';
             $info = 'Thank you for your purchase';
             $type = 'order';

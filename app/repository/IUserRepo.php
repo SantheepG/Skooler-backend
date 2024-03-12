@@ -11,9 +11,9 @@ interface IUserRepo
     public function AddToCart(Request $request);
     public function UpdateCartItem($id, $qty, $price);
     public function  DeleteFromCart($id);
-    public function FetchCart($id);
-    public function GetNotifications($id);
-    public function UpdateAlertStatus($id);
+    public function FetchCart();
+    public function GetNotifications();
+    public function UpdateAlertStatus();
     public function FetchCards($id);
     public function AddCard(Request $request);
     public function GetUserReviews($id);

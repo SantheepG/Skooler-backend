@@ -10,6 +10,7 @@ use App\Models\Notification;
 use App\Models\Review;
 use App\Models\Order;
 use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Crypt;
 
@@ -152,37 +153,40 @@ class UserRepo implements IUserRepo
             return response()->json(['message' => 'not found'], 404);
         }
     }
-    public function FetchCart($id)
+    public function FetchCart()
     {
-        $cartItems = CartItem::where('user_id', $id)->get();
+        $user = Auth::user();
+        $cartItems = CartItem::where('user_id', $user->id)->get();
         foreach ($cartItems as &$item) {
             $product = Product::find($item->product_id);
             $item->stock = $product->stock;
             $item->thumbnail = $product->thumbnail;
         }
-        $subTotal = CartItem::where('user_id', $id)
+        $subTotal = CartItem::where('user_id', $user->id)
             ->select(CartItem::raw('SUM(totalPrice) as total'))
             ->first()
             ->total;
         return [$cartItems, $subTotal];
     }
-    public function GetNotifications($id)
+    public function GetNotifications()
     {
-        $unreadNotifications = Notification::where('user_id', $id)
+        $user = Auth::user();
+        $unreadNotifications = Notification::where('user_id', $user->id)
             ->where('is_read', false)
             ->count();
 
         if ($unreadNotifications > 0) {
-            $alerts = Notification::where('user_id', $id)->get();
+            $alerts = Notification::where('user_id', $user->id)->get();
             return $alerts;
         } else {
-            Notification::where('user_id', $id)->delete();
+            Notification::where('user_id', $user->id)->delete();
             return [];
         }
     }
-    public function UpdateAlertStatus($id)
+    public function UpdateAlertStatus()
     {
-        Notification::where('user_id', $id)->update(['is_read' => true]);
+        $user = Auth::user();
+        Notification::where('user_id', $user->id)->update(['is_read' => true]);
         return true;
     }
     public function AddCard(Request $request)

@@ -27,6 +27,9 @@ use App\Http\Controllers\ComplaintController;
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('user', [AuthController::class, 'user']);
     Route::put('user/reset', [AuthController::class, 'resetPassword']);
+    Route::get('user/cart', [UserController::class, 'fetchCart']);
+    Route::get('/user/notifications/fetch', [UserController::class, 'fetchNotifications']);
+    Route::get('/user/notifications/change', [UserController::class, 'updateAlertStatus']);
     Route::post('user/logout', [AuthController::class, 'logout']);
 });
 
@@ -44,7 +47,6 @@ Route::delete('user/delete/{id}', [AuthController::class, 'deleteUser']);
 Route::post('/cart/add', [UserController::class, 'addToCart']);
 Route::put('/updatecart/{id}/{qty}/{price}', [UserController::class, 'updateCartItem']);
 Route::delete('/cart/delete/{id}', [UserController::class, 'deleteCartItem']);
-Route::get('/cart/{id}', [UserController::class, 'fetchCart']);
 
 Route::put('user/update/name', [UserController::class, 'updateName']);
 Route::put('user/update/address', [UserController::class, 'updateAddress']);
@@ -52,8 +54,7 @@ Route::put('update', [UserController::class, 'updateProfile']);
 Route::get('/user/orders/{id}', [OrderController::class, 'getUserOrders']);
 Route::get('user/complaints/{id}', [ComplaintController::class, 'fetchUserComplaints']);
 Route::post('user/complaint/lodge', [ComplaintController::class, 'lodgeComplaint']);
-Route::get('/user/notifications/fetch/{id}', [UserController::class, 'fetchNotifications']);
-Route::get('/user/notifications/change/{id}', [UserController::class, 'updateAlertStatus']);
+
 
 Route::post('/user/placeorder/slip/upload', [OrderController::class, 'uploadBankSlip']);
 Route::post('/user/placeorder', [OrderController::class, 'PlaceOrder']);

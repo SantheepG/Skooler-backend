@@ -99,10 +99,10 @@ class UserController extends Controller
         }
     }
 
-    public function fetchCart($id)
+    public function fetchCart()
     {
         try {
-            $response = $this->userRepo->FetchCart($id);
+            $response = $this->userRepo->FetchCart();
             return response()->json([
                 "cart" => $response[0],
                 "subtotal" => number_format($response[1], 2, '.', '')
@@ -111,10 +111,10 @@ class UserController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
-    public function fetchNotifications($id)
+    public function fetchNotifications()
     {
         try {
-            $response = $this->userRepo->GetNotifications($id);
+            $response = $this->userRepo->GetNotifications();
             return response()->json([
                 "alerts" => $response,
                 "status" => 200
@@ -123,10 +123,10 @@ class UserController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
-    public function updateAlertStatus($id)
+    public function updateAlertStatus()
     {
         try {
-            $response = $this->userRepo->UpdateAlertStatus($id);
+            $response = $this->userRepo->UpdateAlertStatus();
             if ($response) {
                 return response()->json([
                     "message" => "done",
