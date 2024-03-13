@@ -156,9 +156,9 @@ class AuthController extends Controller
             $reponse = $this->authRepo->ResetPassword($request);
 
             if ($reponse) {
-                return response()->json(['error' => 'Current password is incorrect'], 401);
+                return response()->json(['message' => 'Password changed successfully'], 200);
             } else {
-                return response()->json(['message' => 'Password changed successfully']);
+                return response()->json(['error' => 'Current password is incorrect'], 401);
             }
         }
     }
