@@ -9,7 +9,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ComplaintController;
-
+use App\Http\Controllers\OtpController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,6 +33,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('user/logout', [AuthController::class, 'logout']);
 });
 
+//OTP verification
+Route::post('user/phone/verify', [OtpController::class, 'sendOtp']);
+Route::post('user/phone/otp/check', [OtpController::class, 'verifyOTP']);
 
 Route::post('user/login', [AuthController::class, 'login']);
 
