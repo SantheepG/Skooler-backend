@@ -23,4 +23,8 @@ interface IUserRepo
     public function RateProduct(Request $request);
     public function FetchUserContact($id);
     public function UpdateProfilePic(Request $request);
+    public function VerifyUserNumber(Request $request);
+    public function RecoverAccount(Request $response);
+    public function ResetPwdOTP(Request $request);
+    public function CheckOTP(Request $request);
 }

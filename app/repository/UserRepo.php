@@ -13,6 +13,8 @@ use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Hash;
+use Twilio\Rest\Client;
 
 class UserRepo implements IUserRepo
 {
@@ -289,5 +291,64 @@ class UserRepo implements IUserRepo
                 $user->mobile_no
             ];
         }
+    }
+    //OTP
+    public function VerifyUserNumber(Request $request)
+    {
+        $sid = env("TWILIO_SID");
+        $token = env("TWILIO_TOKEN");
+        $verifySid = env("TWILIO_VERIFY_SID");
+        $client = new Client($sid, $token);
+
+        $verification = $client->verify->v2->services($verifySid)
+            ->verifications
+            ->create($request->mobile_no, "sms");
+        if ($verification) {
+            return  true;
+        } else {
+            return  false;;
+        }
+    }
+    public function RecoverAccount(Request $request)
+    {
+
+        $user = User::where('mobile_no', request('mobile_no'))->first();
+        if ($user) {
+            $user->password = Hash::make($request->input('pwd'));
+            $user->save();
+            return true;
+        } else {
+            return false;
+        }
+    }
+    public function ResetPwdOTP(Request $request)
+    {
+        $sid = env("TWILIO_SID");
+        $token = env("TWILIO_TOKEN");
+        $verifySid = env("TWILIO_VERIFY_SID");
+        $client = new Client($sid, $token);
+        $verification = $client->verify->v2->services($verifySid)
+            ->verifications
+            ->create($request->mobile_no, "sms");
+
+        return $verification->status;
+    }
+    public function CheckOTP(Request $request)
+    {
+        $sid = env("TWILIO_SID");
+        $token = env("TWILIO_TOKEN");
+        $verifySid = env("TWILIO_VERIFY_SID");
+        $twilio = new Client($sid, $token);
+
+        $otpCode = $request->input('otp');
+
+        $verificationCheck = $twilio->verify->v2->services($verifySid)
+            ->verificationChecks
+            ->create([
+                'to' => $request->mobile_no,
+                'code' => $otpCode,
+            ]);
+
+        return $verificationCheck->valid;
     }
 }

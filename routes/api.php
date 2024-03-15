@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EventController;
@@ -9,7 +8,6 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ComplaintController;
-use App\Http\Controllers\OtpController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,8 +32,16 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 //OTP verification
-Route::post('user/phone/verify', [OtpController::class, 'sendOtp']);
-Route::post('user/phone/otp/check', [OtpController::class, 'verifyOTP']);
+Route::post('user/phone/verify', [UserController::class, 'sendOtp']);
+Route::post('user/phone/reset', [UserController::class, 'resetPwdOtp']);
+Route::post('user/account/recover', [UserController::class, 'resetUserPwd']);
+Route::post('user/phone/otp/check', [UserController::class, 'verifyOTP']);
+
+Route::post('admin/phone/reset', [adminController::class, 'resetPwdOTP']);
+Route::post('admin/phone/otp/check', [adminController::class, 'checkOTP']);
+Route::post('admin/account/recover', [adminController::class, 'recoverAccount']);
+
+
 
 Route::post('user/login', [AuthController::class, 'login']);
 

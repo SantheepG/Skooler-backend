@@ -359,4 +359,81 @@ class UserController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
+
+    public function sendOtp(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'mobile_no' => 'required|string'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            } else {
+
+                $response = $this->userRepo->VerifyUserNumber($request);
+                return response()->json(['message' => $response], 200);
+            }
+        } catch (\Exception $e) {
+            // Handle any exceptions
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+    public  function resetPwdOtp(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'mobile_no' => 'required|exists:users,mobile_no'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            } else {
+                $response = $this->userRepo->ResetPwdOTP($request);
+                return response()->json(['message' => $response], 200);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+    public  function resetUserPwd(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'mobile_no' => 'required|exists:users,mobile_no',
+                'pwd' => 'required|min:8',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            } else {
+                $response = $this->userRepo->RecoverAccount($request);
+                if ($response) {
+                    return response()->json(['message' => 'updated', 'status' => 200], 200);
+                } else {
+                    return response()->json(['message' => 'unauthorized', 'status' => 406], 406);
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+    public function verifyOTP(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'mobile_no' => 'required|string',
+                'otp' => 'required|string'
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->error()], 422);
+            } else {
+                $response = $this->userRepo->CheckOTP($request);
+
+                return  response(['verified' => $response, 'status' => 200], 200);
+            }
+        } catch (\Exception $e) {
+            return response(['message' => 'Error', $e->getMessage()], 500);
+        }
+    }
 }

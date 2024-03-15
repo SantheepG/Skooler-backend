@@ -252,4 +252,68 @@ class AdminController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
+
+    public function resetPwdOTP(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'mobile_no' => 'required|exists:admins,mobile_no'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            } else {
+
+                $reponse = $this->adminRepo->ResetPwdOTP($request);
+
+                return response()->json(['message' => $reponse], 200);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+    public function checkOTP(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'mobile_no' => 'required|string',
+                'otp' => 'required|string'
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->error()], 422);
+            } else {
+                $reponse = $this->adminRepo->CheckOTP($request);
+
+                if ($reponse) {
+                    return  response(['verified' => true, 'status' => 200], 200);
+                } else {
+                    return  response(['verified' => false, 'status' => 200], 200);
+                }
+            }
+        } catch (\Exception $e) {
+            return response(['message' => 'Error', $e->getMessage()], 500);
+        }
+    }
+    public function recoverAccount(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'mobile_no' => 'required|exists:admins,mobile_no',
+                'pwd' => 'required|min:8',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            } else {
+                $response = $this->adminRepo->RecoverAccount($request);
+                if ($response) {
+                    return response()->json(['message' => 'updated', 'status' => 200], 200);
+                } else {
+                    return response()->json(['message' => 'unauthorized', 'status' => 406], 406);
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 }

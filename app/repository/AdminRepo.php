@@ -10,7 +10,7 @@ use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
-
+use Twilio\Rest\Client;
 use Illuminate\Support\Facades\Hash;
 
 class AdminRepo implements IAdminRepo
@@ -41,8 +41,6 @@ class AdminRepo implements IAdminRepo
         $admins = Admin::reorder('created_at', 'desc')->get();
         return $admins;
     }
-
-
     public function AddAdmin(Request $request)
     {
         $admin = Admin::create([
@@ -142,5 +140,53 @@ class AdminRepo implements IAdminRepo
             $admin->delete();
         }
         return $admin ? true : false;
+    }
+
+    //OTP 
+    public function ResetPwdOTP(Request $request)
+    {
+        $sid = env("TWILIO_SID");
+        $token = env("TWILIO_TOKEN");
+        $verifySid = env("TWILIO_VERIFY_SID");
+        $client = new Client($sid, $token);
+        $verification = $client->verify->v2->services($verifySid)
+            ->verifications
+            ->create($request->mobile_no, "sms");
+
+        return $verification->status;
+    }
+    public function CheckOTP(Request $request)
+    {
+        $sid = env("TWILIO_SID");
+        $token = env("TWILIO_TOKEN");
+        $verifySid = env("TWILIO_VERIFY_SID");
+        $twilio = new Client($sid, $token);
+
+        $otpCode = $request->input('otp');
+
+        $verificationCheck = $twilio->verify->v2->services($verifySid)
+            ->verificationChecks
+            ->create([
+                'to' => $request->mobile_no,
+                'code' => $otpCode,
+            ]);
+
+        if ($verificationCheck->valid) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function RecoverAccount(Request $request)
+    {
+        $admin = Admin::where('mobile_no', request('mobile_no'))->first();
+        if ($admin) {
+            $admin->password = Hash::make($request->input('pwd'));
+            $admin->save();
+            return true;
+        } else {
+            return false;
+        }
     }
 }
