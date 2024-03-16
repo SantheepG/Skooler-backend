@@ -215,7 +215,7 @@ class UserRepo implements IUserRepo
 
             return $decryptedCardDetails;
         } else {
-            return false;
+            return "[]";
         }
     }
     public function GetUserReviews($id)
