@@ -42,21 +42,14 @@ class OrderRepo implements IOrderRepo
             'reviewed' => false
         ]);
         if ($order) {
-            CartItem::where('user_id', $request->user_id)->delete();;
-            $name = 'Your order has been placed';
-            $info = 'Thank you for your purchase';
-            $type = 'order';
-            $is_read = false;
-            $user_id = $request->user_id;
-
-            $notification = new Notification();
-
-            $notification->name = $name;
-            $notification->info = $info;
-            $notification->type = $type;
-            $notification->is_read = $is_read;
-            $notification->user_id = $user_id;
-            $notification->save();
+            CartItem::where('user_id', $request->user_id)->delete();
+            $notification = Notification::create([
+                'name' => 'Your order has been placed',
+                'info' => 'Thank you for your purchase',
+                'type' => 'order',
+                'is_read' => false,
+                'user_id' => $request->user_id,
+            ]);
         }
 
         return $order ? true : false;
