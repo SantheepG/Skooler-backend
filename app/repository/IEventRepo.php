@@ -19,4 +19,7 @@ interface IEventRepo
     public function RemainingSlots($eventId);
     public function FetchAllBookings();
     public function DeleteBooking($bookingId);
+    public function AddHoliday(Request $request);
+    public function FetchHolidays();
+    public function DeleteHoliday($holidayId);
 }

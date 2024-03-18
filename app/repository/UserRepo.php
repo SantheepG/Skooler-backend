@@ -21,7 +21,7 @@ class UserRepo implements IUserRepo
     //Fetch all users for admin side
     public function GetUsers()
     {
-        $users =  User::reorder('created_at', 'desc')->get();
+        $users =  User::all();
         return $users;
     }
     //User account status change

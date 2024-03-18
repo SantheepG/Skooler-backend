@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use App\Models\Booking;
+use App\Models\Holiday;
 use App\Models\Notification;
 use App\Models\User;
 
@@ -184,5 +185,32 @@ class EventRepo implements IEventRepo
         }
 
         return $booking ? true : false;
+    }
+
+    public function AddHoliday(Request $request)
+    {
+        $holiday = Holiday::create([
+            'name' => $request->name,
+            'date' => $request->date,
+        ]);
+        return $holiday ? true : false;
+    }
+
+    public function FetchHolidays()
+    {
+
+        $holidays = Holiday::reorder('created_at', 'desc')->get();
+        return $holidays;
+    }
+
+    public function DeleteHoliday($holidayId)
+    {
+        $holiday = Holiday::findOrFail($holidayId);
+        if ($holiday) {
+            $holiday->delete();
+            return true;
+        } else {
+            return false;
+        }
     }
 }

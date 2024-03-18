@@ -337,4 +337,69 @@ class EventController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
+
+    public function addHoliday(Request $req)
+    {
+        try {
+            $validator = Validator::make($req->all(), [
+                'name' => 'required|string',
+                'date' => 'required|date',
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->messages()], 422);
+            } else {
+                $response = $this->eventRepo->AddHoliday($req);
+                if ($response) {
+                    return response()->json([
+                        'status' => 201,
+                        'message' => 'added',
+                    ], 201);
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'error' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function fetchHolidays()
+    {
+        try {
+            $response = $this->eventRepo->FetchHolidays();
+            if ($response) {
+                return response()->json([
+                    'status' => 200,
+                    'holidays' => $response,
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'No holidays Found!'
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
+
+    public function deleteHoliday($id)
+    {
+        try {
+            $response = $this->eventRepo->DeleteHoliday($id);
+            if ($response) {
+                return response()->json([
+                    'status' => 200,
+                    "message" => "deleted"
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => 404,
+                    'message' => "Not Found!"
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
+        }
+    }
 }

@@ -39,7 +39,6 @@ class AuthRepo implements IAuthRepo
     {
         if (Auth::attempt($request->only('mobile_no', 'password'))) {
             $user = Auth::user();
-            //Auth::login($user);
             $token = $request->user()->createToken('token')->plainTextToken;
 
             return [$user, $token];

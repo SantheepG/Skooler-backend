@@ -149,6 +149,12 @@ Route::post('/user/bookings', [EventController::class, 'fetchUserBookings']);
 Route::get('fetch/bookings', [EventController::class, 'fetchAllBookings']);
 Route::delete('booking/delete/{id}', [EventController::class, 'deleteBooking']);
 
+//Holidays related 
+Route::get('/holidays/fetch', [EventController::class, 'fetchHolidays']);
+Route::post('/add/holiday', [EventController::class, 'addHoliday']);
+Route::delete('/holiday/delete/{id}', [EventController::class, 'deleteHoliday']);
+
+
 //Complaints
 Route::get('/complaints', [ComplaintController::class, 'fetchComplaints']);
 Route::post('user/complaint/lodge', [ComplaintController::class, 'lodgeComplaint']);
