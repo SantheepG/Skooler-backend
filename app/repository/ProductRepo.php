@@ -13,8 +13,6 @@ use App\Models\Subcategory;
 use App\Models\Event;
 use Illuminate\Support\Facades\Storage;
 
-use function Laravel\Prompts\error;
-
 class ProductRepo implements IProductRepo
 {
     public function FetchProducts()

@@ -279,24 +279,7 @@ class UserController extends Controller
             return response()->json(['message' => 'Error' . $e->getMessage()], 500);
         }
     }
-    public function deleteUser($id)
-    {
-        try {
-            $response = $this->userRepo->DeleteUser($id);
-            if ($response) {
-                return response()->json([
-                    "message" => "deleted",
-                ], 200);
-            } else {
-
-                return response()->json([
-                    "message" => "not found",
-                ], 404);
-            }
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Error' . $e->getMessage()], 500);
-        }
-    }
+    
 
     public function fetchUsers()
     {
