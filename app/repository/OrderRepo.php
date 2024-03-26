@@ -102,6 +102,16 @@ class OrderRepo implements IOrderRepo
         }
         return $order ? true : false;
     }
+    public function ChangeOrderStatus(Request $request)
+    {
+        $order = Order::find($request->id);
+        if ($order) {
+            $order->order_status = $request->status;
+            $order->save();
+            return true;
+        }
+        return false;
+    }
     public function DeleteOrder($id)
     {
         $order = Order::where('id', $id)->first();

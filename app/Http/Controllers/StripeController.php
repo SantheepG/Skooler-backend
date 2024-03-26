@@ -7,23 +7,24 @@ use Illuminate\Routing\Controller;
 
 class StripeController extends Controller
 {
-    public function checkout()
+    public function checkout(Request $request)
     {
-        \Stripe\Stripe::setApiKey(config());
+        \Stripe\Stripe::setApiKey(config('stripe.sk'));
+
         $session = \Stripe\Checkout\Session::create([
-            'line_items' => [
+            'payment_method_types' => ['card'],
+            'line_items' => [[
                 'price_data' => [
-                    'currency' => 'lkr',
+                    'currency' => 'usd',
                     'product_data' => [
-                        'name' => 'Send money',
+                        'name' => 'Order Total', // You can change the name as needed
                     ],
-                    'unit_amount' => 500,
+                    'unit_amount' => (int)($request->total_price),
                 ],
                 'quantity' => 1,
-            ],
+            ]],
             'mode' => 'payment',
-            //'success_url' => route('success'),
         ]);
-        return redirect()->away($session->url);
+        return response()->json(['id' => $session->id, 'url' => $session->url]);
     }
 }

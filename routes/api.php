@@ -8,6 +8,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ComplaintController;
+use App\Http\Controllers\StripeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -165,5 +166,9 @@ Route::delete('complaint/delete/{id}', [ComplaintController::class, 'deleteCompl
 
 //order
 Route::put('admin/order/update', [OrderController::class, 'updateOrder']);
+Route::put('admin/order/status/update', [OrderController::class, 'changeOrderStatus']);
 Route::get('/admin/orders', [OrderController::class, 'fetchAllOrders']);
 Route::delete('/admin/order/delete/{id}', [OrderController::class, 'deleteOrder']);
+
+//Stripe 
+Route::post('user/order/checkout', [StripeController::class, 'checkout']);

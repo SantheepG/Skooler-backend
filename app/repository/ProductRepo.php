@@ -77,7 +77,7 @@ class ProductRepo implements IProductRepo
         if ($featuredProducts->count() < 3) {
             // Select newly added products to fill the gap
             $newProducts = Product::orderBy('created_at', 'DESC')
-                ->whereNotIn('product_id', $featuredProducts->pluck('product_id'))
+                ->whereNotIn('id', $featuredProducts->pluck('product_id'))
                 ->limit(3 - $featuredProducts->count())
                 ->get();
             // Merge the collections to get the final result

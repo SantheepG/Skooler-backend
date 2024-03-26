@@ -44,7 +44,6 @@ class UserRepo implements IUserRepo
             return User::all();
         }
     }
-
     //update user address
     public function UpdateAddress(Request $request)
     {
@@ -57,7 +56,6 @@ class UserRepo implements IUserRepo
             return $user;
         }
     }
-
     //update user fname, surname
     public function UpdateName(Request $request)
     {
@@ -120,6 +118,7 @@ class UserRepo implements IUserRepo
             }
         }
     }
+    //Update cart item
     public function UpdateCartItem($id, $qty, $price)
     {
         $cartItem = CartItem::find($id);
@@ -138,6 +137,7 @@ class UserRepo implements IUserRepo
             return false;
         }
     }
+    //delete cart item
     public function DeleteFromCart($id)
     {
         $cartItem = CartItem::where('id', $id)->first();
@@ -155,6 +155,7 @@ class UserRepo implements IUserRepo
             return response()->json(['message' => 'not found'], 404);
         }
     }
+    //Fetch user cart
     public function FetchCart()
     {
         $user = Auth::user();
@@ -170,6 +171,7 @@ class UserRepo implements IUserRepo
             ->total;
         return [$cartItems, $subTotal];
     }
+    //fetch user notifications
     public function GetNotifications()
     {
         $user = Auth::user();

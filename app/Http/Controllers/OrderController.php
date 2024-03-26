@@ -144,7 +144,29 @@ class OrderController extends Controller
             return response()->json(['error' => $e], 500);
         }
     }
+    public function changeOrderStatus(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'id' => 'required|exists:sales_history,id',
+                'status' => 'required|string',
 
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 422);
+            } else {
+
+                $response = $this->orderRepo->ChangeOrderStatus($request);
+                if ($response) {
+                    return response()->json(['message' => 'Order updated'], 200);
+                } else {
+                    return response()->json(['error' => 'Order not found.'], 404);
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e], 500);
+        }
+    }
     public function deleteOrder($id)
     {
         try {

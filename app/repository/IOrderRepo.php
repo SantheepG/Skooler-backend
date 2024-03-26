@@ -11,5 +11,6 @@ interface IOrderRepo
     public function UploadBankSlip(Request $request);
     public function FetchOrders();
     public function UpdateOrder(Request $request);
+    public function ChangeOrderStatus(Request $request);
     public function DeleteOrder($id);
 }

@@ -38,7 +38,7 @@ class AdminRepo implements IAdminRepo
     }
     public function GetAllAdmins()
     {
-        $admins = Admin::reorder('created_at', 'desc')->get();
+        $admins = Admin::all();
         return $admins;
     }
     public function AddAdmin(Request $request)

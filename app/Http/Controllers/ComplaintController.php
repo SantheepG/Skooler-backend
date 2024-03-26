@@ -48,7 +48,7 @@ class ComplaintController extends Controller
                 if ($response === true) {
                     return response()->json(['message' => 'Complaint lodged', 'status' => 201], 201);
                 } else if ($response === "exists") {
-                    return response()->json(['message' => 'already exists', 'status' => 422], 422);
+                    return response()->json(['message' => 'already exists', 'status' => 422], 400);
                 } else {
                     return response()->json(['message' => 'something went wrong', 'status' => 500], 500);
                 }
