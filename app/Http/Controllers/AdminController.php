@@ -208,7 +208,7 @@ class AdminController extends Controller
         } else {
             $reponse = $this->adminRepo->ResetPassword($request);
 
-            if ($reponse) {
+            if (!$reponse) {
                 return response()->json(['error' => 'Current password is incorrect'], 401);
             } else {
                 return response()->json(['message' => 'Password changed successfully'], 200);
