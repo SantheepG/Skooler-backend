@@ -172,7 +172,7 @@ class AdminController extends Controller
             $admin = $this->adminRepo->GetAdmin();
             //$admin = Auth::user();
             if ($admin) {
-                return (response()->json(['admin' => $admin], 200));
+                return (response()->json(['admin' => $admin, 'status' => 200], 200));
             } else {
                 return (response()->json(['message' => 'admin not found', 'response' => $admin], 404));
             }
