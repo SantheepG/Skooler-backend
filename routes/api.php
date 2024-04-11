@@ -2,13 +2,15 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\EventController;
-use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\EventController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PayPalController;
+use App\Http\Controllers\StripeController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ComplaintController;
-use App\Http\Controllers\StripeController;
+use App\Http\Controllers\TicketPaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -172,3 +174,21 @@ Route::delete('/admin/order/delete/{id}', [OrderController::class, 'deleteOrder'
 
 //Stripe 
 Route::post('user/order/checkout', [StripeController::class, 'checkout']);
+
+//stripe payment
+Route::post('/productStripe', [StripeController::class, 'productStripe']);
+Route::post('/checkout', [StripeController::class, 'checkout']);
+Route::get('/success', [StripeController::class, 'success']);
+Route::get('/cancel', [StripeController::class, 'cancel']);
+
+
+//ticket payment
+Route::post('/ticket-session', [TicketPaymentController::class, 'ticketSession']);
+Route::get('/tickets-success', [TicketPaymentController::class, 'ticketsSuccess']);
+Route::get('/tickets-cancel', [TicketPaymentController::class, 'ticketsCancel']);
+
+
+//paypal payment
+Route::get('/create/{amount}', [PayPalController::class, 'create']);
+Route::post('/complete', [PayPalController::class, 'complete']);
+
