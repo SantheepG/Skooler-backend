@@ -176,19 +176,6 @@ Route::delete('/admin/order/delete/{id}', [OrderController::class, 'deleteOrder'
 Route::post('user/order/checkout', [StripeController::class, 'checkout']);
 
 //stripe payment
-Route::post('/productStripe', [StripeController::class, 'productStripe']);
 Route::post('/checkout', [StripeController::class, 'checkout']);
 Route::get('/success', [StripeController::class, 'success']);
 Route::get('/cancel', [StripeController::class, 'cancel']);
-
-
-//ticket payment
-Route::post('/ticket-session', [TicketPaymentController::class, 'ticketSession']);
-Route::get('/tickets-success', [TicketPaymentController::class, 'ticketsSuccess']);
-Route::get('/tickets-cancel', [TicketPaymentController::class, 'ticketsCancel']);
-
-
-//paypal payment
-Route::get('/create/{amount}', [PayPalController::class, 'create']);
-Route::post('/complete', [PayPalController::class, 'complete']);
-
