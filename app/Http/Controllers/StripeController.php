@@ -46,8 +46,8 @@ class StripeController extends Controller
 
     public function success()
     {
-        // Redirect to the success page
-        return view('success');
+        // Display the payment success page
+        return view('payment_success', ['message' => 'Thank you, the payment was made successfully..!']);
     }
 
     public function cancel()

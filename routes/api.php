@@ -172,10 +172,13 @@ Route::put('admin/order/status/update', [OrderController::class, 'changeOrderSta
 Route::get('/admin/orders', [OrderController::class, 'fetchAllOrders']);
 Route::delete('/admin/order/delete/{id}', [OrderController::class, 'deleteOrder']);
 
-//Stripe 
-Route::post('user/order/checkout', [StripeController::class, 'checkout']);
+// //Stripe 
+// Route::post('user/order/checkout', [StripeController::class, 'checkout']);
 
 //stripe payment
-Route::post('/checkout', [StripeController::class, 'checkout']);
-Route::get('/success', [StripeController::class, 'success']);
-Route::get('/cancel', [StripeController::class, 'cancel']);
+Route::post('/checkout', 'App\Http\Controllers\StripeController@checkout')->name('checkout');
+Route::get('/success', 'App\Http\Controllers\StripeController@success')->name('success');
+Route::get('/cancel', 'App\Http\Controllers\StripeController@cancel')->name('cancel');
+// Route::post('/checkout', [StripeController::class, 'checkout']);
+// Route::get('/success', [StripeController::class, 'success']);
+// Route::get('/cancel', [StripeController::class, 'cancel']);
