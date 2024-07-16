@@ -283,7 +283,7 @@ class ProductController extends Controller
                 'discounted_price' => 'numeric|nullable',
                 'images' => 'json|nullable',
                 'category_id' => 'required|exists:category,id',
-                'subcategory_id' => 'exists:subcategory,id',
+                'subcategory_id' => 'exists:subcategory,id|nullable',
             ]);
             if ($validator->fails()) {
                 return response()->json([
